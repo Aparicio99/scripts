@@ -1,0 +1,23 @@
+#!/bin/sh
+
+WINDOW="-window -geometry 1024x768"
+NORMAL="-range 10 -radius 40 -label -wait 60 -north orbit -lat 25 -lon -9"
+
+cd $HOME/.xplanet
+
+case  $1 in
+	update)
+		wget -O new.tle http://www.celestrak.com/NORAD/elements/tle-new.txt
+		wget -O stations.tle http://www.celestrak.com/NORAD/elements/stations.txt
+		exit 0 ;;
+	clouds)
+		./download_clouds.py
+		exit 0 ;;
+	wall)
+		OPTS="$NORMAL" ;;
+	*)
+		OPTS="$NORMAL $WINDOW" ;;
+esac
+
+pkill xplanet
+xplanet -config config $OPTS &

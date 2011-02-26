@@ -1,0 +1,59 @@
+#!/usr/bin/awk -f
+function pretty_time(s)
+{
+	days = int(s / 86400)
+	s -= days * 86400
+	hours = int (s / 3600)
+	s -= hours * 3600
+	mins = int(s / 60)
+	s -= mins * 60
+	secs = s
+	return sprintf("%d days %d hours %d minutes %.2f seconds", days, hours, mins, secs)
+}
+
+function si(b, u)
+{
+	if (u == "iB") m = 1024
+	else m = 1000
+
+	if (b < m)
+		return sprintf("%.2f %s", b, u)
+	if (b < m^2)
+		return sprintf("%.2f K%s", b/m, u)
+	if (b < m^3)
+		return sprintf("%.2f M%s", b/m^2, u)
+	if (b < m^4)
+		return sprintf("%.2f G%s", b/m^3, u)
+}
+
+BEGIN {
+	while (getline < "/proc/stat")
+		stat[$1] = $2
+
+	getline < "/proc/version"
+	print $0, "\n"
+
+	getline < "/proc/uptime"
+	uptime = $1
+	idle = $2
+
+	printf " %20s %15d     %s\n", "Date", strftime("%s"), strftime("%c")
+	printf " %20s %15d     %s\n", "Boot date", strftime("%s", stat["btime"]), strftime("%c", stat["btime"])
+	printf " %20s %15d     %s\n", "Uptime", uptime, pretty_time(uptime)
+	printf " %20s %15d     %s\n", "Idle time", idle, pretty_time(idle)
+
+	print ""
+
+	printf " %20s %15d     %s (%.2f/s)\n", "Forks", stat["processes"], si(stat["processes"]), stat["processes"]/uptime
+	printf " %20s %15d     %s (%.2f/s)\n", "Context Switches", stat["ctxt"], si(stat["ctxt"]), stat["ctxt"]/uptime
+	printf " %20s %15d     %s (%.2f/s)\n", "Interrupts", stat["intr"], si(stat["intr"]), stat["intr"]/uptime
+
+	print ""
+
+	getline rx_bytes < "/sys/class/net/wlan0/statistics/rx_bytes"
+	getline tx_bytes < "/sys/class/net/wlan0/statistics/tx_bytes"
+
+	printf " %20s %15d     %s (%s/s)\n", "Received", rx_bytes, si(rx_bytes, "iB"), si(rx_bytes/uptime, "iB")
+	printf " %20s %15d     %s (%s/s)\n", "Transmitted", tx_bytes, si(tx_bytes, "iB"), si(tx_bytes/uptime, "iB")
+
+}

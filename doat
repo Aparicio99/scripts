@@ -1,0 +1,7 @@
+#!/bin/sh
+NOW=`date +%s`
+DATE=`date --date="$1" +%s`
+
+sleep $((DATE - NOW))
+exec ${@:2}
+

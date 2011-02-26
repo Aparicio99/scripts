@@ -1,0 +1,31 @@
+#!/usr/bin/python3
+import urllib.request, xml.dom.minidom, os.path
+
+def processInfo(v):
+	print(v["city"], " em ", v["current_date_time"], "  ", sep="")
+
+def processCurrent(v):
+	print("Hoje: ", v["condition"], ", ", v["temp_c"], "°C", sep="")
+	print("     ", v["humidity"])
+	print("     ", v["wind_condition"])
+	print("      ", os.path.basename(v["icon"]), "\n", sep="")
+
+def processForecast(v):
+	print(v["day_of_week"], ": ", v["condition"], ", ", v["low"], "°C a ", v["high"], "°C\n", sep="")
+
+def getValues(node):
+	values = {}
+	for child in node.childNodes:
+		values[child.nodeName] = child.attributes.item(0).value
+	return values
+
+f = urllib.request.urlopen('http://www.google.com/ig/api?weather=loures&hl=pt-pt')
+dom = xml.dom.minidom.parseString(f.read().decode('ISO-8859-1'))
+getTag = dom.getElementsByTagName
+
+processCurrent(getValues(getTag("current_conditions")[0]))
+
+for node in getTag("forecast_conditions"):
+	processForecast(getValues(node))
+
+processInfo(getValues(getTag("forecast_information")[0]))

@@ -1,0 +1,33 @@
+#!/bin/sh
+[[ -z $1 ]] && echo "Usage: batleft <seconds>" && exit -1
+
+BAT="/sys/class/power_supply/BAT0"
+FILE_NOW="$BAT/charge_now"
+read FULL < $BAT/charge_full
+read DESIGN < $BAT/charge_full_design
+
+echo "Total capacity: $FULL($DESIGN) µAh"
+
+read NOW < $FILE_NOW
+echo "Charge t1: $NOW µAh"
+
+sleep $1
+
+read NOW2 < $FILE_NOW
+echo "Charge t2: $NOW2 µAh"
+
+DIFF=$((NOW-NOW2))
+VEL=$((DIFF/$1))
+
+echo "Diff in $1 seconds: $DIFF µAh"
+
+if (( VEL == 0  )); then
+	echo "Battery charged"
+
+elif (( VEL < 0 )); then
+	echo "Charging velocity: $((VEL * -1)) µAh/s"
+	echo "ETA: $(( (NOW2 - FULL)/(VEL * 1)/60 )) minutes"
+else
+	echo "Discharging velocity: $VEL µAh/s"
+	echo "ETA: $((NOW2/VEL/60)) minutes"
+fi

@@ -1,0 +1,23 @@
+#!/usr/bin/awk -f
+BEGIN {
+	sort = "sort -nr"
+
+	if (ARGC > 1)
+		n = int(ARGV[1])
+	else
+		n = 10
+
+	while (getline < (ENVIRON["HOME"] "/.zhistory"))
+		if( $1 != ":") {
+			cmd[$1]++;
+			count++;
+		}
+
+	for(a in cmd)
+		printf "%d %s\n", cmd[a], a |& sort
+	close(sort, "to")
+
+	i = 1
+	while (sort |& getline && i <= n)
+		printf "%5d %5d %6.2f%%    %s\n",  i++, $1, $1/count*100, $2
+}

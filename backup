@@ -1,0 +1,24 @@
+#!/bin/sh
+nc -z null 22
+if [[ $? != 0 ]]; then
+	echo "Server down"
+	exit -1
+fi
+
+HOST=$(hostname)
+DIRS="/home/aparicio"
+[[ $USER == root ]] && DIRS="$DIRS /etc /var"
+
+DEST="aparicio@null"
+BACKUP_DIR="/mnt/backup"
+NEW="$HOST.$(date +%Y.%m.%d.%H%M)"
+
+echo "Backup $DIRS to $DEST:$BACKUO_DIR/$NEW"
+rsync --archive --one-file-system --hard-links --human-readable  \
+	--numeric-ids --delete --delete-excluded --progress --compress \
+	--exclude-from=/home/aparicio/.rsync_exclude.txt \
+	--include-from=/home/aparicio/.rsync_include.txt \
+	--link-dest=../$HOST.last \
+	$DIRS $DEST:$BACKUP_DIR/$NEW
+
+ssh $DEST ln -sfn $BACKUP_DIR/$NEW $BACKUP_DIR/$HOST.last

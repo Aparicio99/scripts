@@ -1,0 +1,48 @@
+#!/usr/bin/awk -f
+BEGIN {
+	interval = 5
+	sort = "sort -nk2"
+
+	print "Sampling for", interval, "seconds"
+
+	while ("ps -u aparicio --noheaders" | getline)
+		procs[$1] = $4
+
+	for (pid in procs) {
+		while (getline < ("/proc/"pid"/status")) {
+			if ($1 == "voluntary_ctxt_switches:")
+				ctxv1[pid] = $2
+			else if ($1 == "nonvoluntary_ctxt_switches:")
+				ctxn1[pid] = $2
+		}
+		close("/proc/"pid"/status")
+	}
+
+	system("sleep " interval)
+
+	for (pid in procs)
+		while (getline < ("/proc/"pid"/status"))
+			if ($1 == "voluntary_ctxt_switches:")
+				ctxv2[pid] = $2
+			else if ($1 == "nonvoluntary_ctxt_switches:")
+				ctxn2[pid] = $2
+
+	for (pid in procs) {
+		vol = ctxv2[pid] - ctxv1[pid]
+		nvol = ctxn2[pid] - ctxn1[pid]
+		both = vol + nvol
+
+		printf "%-20s %5d %8.1f %12d %8.1f %15d %8.1f\n", procs[pid], both, both/interval, vol, vol/interval, nvol, nvol/interval |& sort
+
+		totalv += vol
+		totaln += nvol
+		total += both
+	}
+	close(sort, "to")
+
+	while (sort |& getline)
+		print $0
+
+	printf "--------------------- Total --- T/s --- Voluntary --- V/s --- Nonvoluntary --- N/s ---\n"
+	printf "%-20s %5d %8.1f %12d %8.1f %15d %8.1f\n", "Total", total, total/interval, total, totalv/interval, totaln, totaln/interval
+}

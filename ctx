@@ -1,0 +1,12 @@
+#!/bin/sh
+[[ $1 ]] && INTERVAL=$1 || INTERVAL=5
+
+echo "Sampling for $INTERVAL seconds"
+START=$(awk '$1=="ctxt"{print $2}' /proc/stat)
+
+sleep $INTERVAL;
+
+END=$(awk '$1=="ctxt"{print $2}' /proc/stat)
+
+echo "Total in $INTERVAL seconds: $((END - START)) ctxt"
+echo "Average: $(( (END - START) / INTERVAL )) ctxt/s"

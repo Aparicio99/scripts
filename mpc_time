@@ -1,0 +1,9 @@
+#!/usr/bin/awk -f
+BEGIN {
+	FS=":"
+
+	while("mpc playlist -f '%time%'" | getline)
+		TOT += $1*60+$2
+
+	printf "%dd %dh %dm %ds\n",  TOT/(60*60*24), TOT/(60*60)%60, TOT/60%60, TOT%60;
+}

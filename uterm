@@ -1,0 +1,56 @@
+#!/bin/sh
+DIR="/home/aparicio/scripts"
+
+function exe {
+	urxvtc $@
+	if [ $? -eq 2 ]; then
+		urxvtd -q -o -f
+		urxvtc $@
+	fi
+}
+
+case $1 in
+
+	back)
+		exe -name term-back -bc -tr -fg white  -g 99x57+1+25 
+		exe -name term-back -bc -tr -fg white  -g 90x57+605+25 
+		;;
+
+	drop)
+		test -z $2 && echo "Usage: $(basename $0) drop <name>" && exit 1
+
+		NAME="urxvtq_$2"
+		exe -name $NAME -g 120x22 -bd Grey25 -b 1
+
+		OK=1
+		while [ $OK == 1 ]; do
+			WID=$(xdotool search --name $NAME)
+			xdotool windowunmap $WID;
+			OK=$?
+		done
+
+		echo \
+"#!/bin/sh
+ACTIVE=\$(xdotool getwindowfocus)
+xdotool windowfocus $WID
+
+if [ \$? == 1 ]; then
+	xdotool windowmap $WID
+	sleep 0.05
+	xdotool windowfocus $WID
+
+elif [ \$ACTIVE == $WID ]; then
+	xdotool windowunmap $WID
+
+else
+	xdotool windowfocus $WID
+
+fi"		> $DIR/$NAME
+
+		chmod +x $DIR/$NAME
+		;;
+
+	*)
+		exe -g 130x30 $@;
+		;;
+esac

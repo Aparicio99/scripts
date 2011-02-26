@@ -1,0 +1,19 @@
+#!/bin/sh
+if [[ $1 ]]; then
+	PID=$1
+else
+	echo "Insert PID!"
+	exit
+fi
+
+[[ $2 ]] && INTERVAL=$1 || INTERVAL=5
+
+echo "Sampling for $INTERVAL seconds ($PID)"
+START=$(awk '$1=="voluntary_ctxt_switches:"{print $2}' /proc/$PID/status)
+
+sleep $INTERVAL;
+
+END=$(awk '$1=="voluntary_ctxt_switches:"{print $2}' /proc/$PID/status)
+
+echo "Total in $INTERVAL seconds: $((END - START)) ctxt"
+echo "Average: $(( (END - START) / INTERVAL )) ctxt/s"

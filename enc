@@ -1,0 +1,11 @@
+#!/bin/sh
+NAME=$(basename $0)
+
+[[ -z $1 ]] && echo "Usage: $NAME <file>" && exit
+
+if [[ $NAME == enc ]] ; then
+	echo "#aes-256-cbc base64" > "$1.aes";
+	openssl enc -aes-256-cbc -a -salt -in $1 >> "$1.aes";
+else
+	openssl enc -d -aes-256-cbc -a -in $1;
+fi

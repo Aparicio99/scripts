@@ -1,0 +1,38 @@
+#!/usr/bin/awk -f
+function show(x, y)
+{
+	color1 = "\033[0;33m"
+	color2 = "\033[1;37m"
+	printf "\t%s%-23s %s%s\n", color1, x, color2, y
+}
+
+BEGIN {
+	while (getline < "/etc/issue.logo")
+		print $0
+
+	getline distro < "/etc/gentoo-release"
+	"uname -rvm" | getline kernel
+	wm = "awesome"
+	term = ENVIRON["TERM"]
+	shell = ENVIRON["SHELL"]
+
+	FS="\""
+	while (getline < (ENVIRON["HOME"] "/.gtkrc-2.0"))
+		switch($0) {
+		case /gtk-theme-name/:
+			gtk = $2; break
+		case /icon-theme-name/:
+			icon = $2; break
+		case /font-name/:
+			font = $2
+		}
+
+	show("Distro", "Gentoo Linux (" distro ")")
+	show("Kernel", kernel)
+	show("Window manager", wm)
+	show("Terminal", term)
+	show("Shell", shell)
+	show("GTK theme", gtk)
+	show("Icons", icon)
+	show("Font", font)
+}

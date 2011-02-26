@@ -1,0 +1,64 @@
+#!/usr/bin/awk -f
+function pretty(s)
+{
+	hours = int (s / 3600)
+	mins = int((s -= hours * 3600) / 60)
+	secs = s - mins * 60
+
+	if (hours > 0)
+		return sprintf("%dh %02dm %02ds", hours, mins, secs)
+	if (mins > 0)
+		return sprintf("%dm %02ds", mins, secs)
+	return sprintf("%ds", secs)
+}
+
+BEGIN {
+	while (getline < "/var/log/emerge.log")
+		if ($2 == ">>>" && $3 == "emerge") {
+			sub("-[^-]*(-r[^-]*)? ", " ")
+			pkg = $7
+			start[pkg] = $1
+		}
+		else if ($2 == ">>>" && $3 == "unmerge") {
+			sub("-[^-]*(-r[^-]*)?$", "")
+			installed[$5] = 0
+		}
+		else if ($2 == ":::") {
+			sub("-[^-]*(-r[^-]*)? ", " ")
+			pkg = $8
+			diff = $1 - start[pkg]
+
+			if (start[pkg] == 0)
+				continue
+			else
+				start[pkg] = 0
+
+			if (diff < min[pkg] || min[pkg] == 0)
+				min[pkg] = diff
+
+			if (diff > max[pkg])
+				max[pkg] = diff
+
+			sum[pkg] += diff
+			count[pkg]++
+			installed[pkg] = 1
+		}
+
+	sort = "sort -n"
+	L = ARGV[1]
+	for (pkg in sum)
+		if (installed[pkg]) {
+			L == "avg" ? l = sum[pkg]/count[pkg] : L == "max" ? l = max[pkg] : l = min[pkg]
+			printf " %6d   %-45s %11s %12s %12s\n", l, pkg, pretty(min[pkg]), pretty(sum[pkg]/count[pkg]), pretty(max[pkg]) |& sort
+			sum_min += min[pkg]
+			sum_avg += sum[pkg]/count[pkg]
+			sum_max += max[pkg]
+		}
+	close(sort, "to")
+
+	while (sort |& getline)
+		print
+
+	printf "------------------------------------------------------------- min -------- avg -------- max ------\n"
+	printf " %6d   %-45s %11s %12s %12s\n", sum_min, "total", pretty(sum_min),pretty(sum_avg),pretty(sum_max)
+}

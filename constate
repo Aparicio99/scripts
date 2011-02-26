@@ -1,0 +1,17 @@
+#!/bin/sh
+exe() {
+	echo -n "Ping $1 [$2]... "
+	ping -c1 -w5 $1 > /dev/null
+	if (( $? == 0 )); then
+		echo "Ok"
+	else
+		echo "FAIL"
+	fi
+}
+
+exe 192.168.1.254 router
+exe 193.136.5.14 ntp.ist.utl.pt
+exe 209.85.229.147 google.pt
+exe 212.55.154.174 "dns server"
+exe ist.utl.pt
+exe google.com

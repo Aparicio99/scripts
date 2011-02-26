@@ -1,0 +1,106 @@
+#!/usr/bin/gawk -f
+BEGIN {
+	now = systime()
+	out = "/root/ap_scan.out"
+	stats = "/root/ap_scan.stats"
+	sort = "sort -nk2"
+	mymac = "00:24:17:D3:32:5D"
+	new = 0
+	c0 = "\033[0m"
+	c1 = "\033[0;32m"
+	c2 = "\033[0;33m"
+	c3 = "\033[0;31m"
+	bold = "\033[0;1m"
+
+	while (getline < out) {
+		days = int((now - $4) / 86400)
+		hours = int((now - $4 - days * 86400) / 3600)
+		mins = int((now - $4 - days * 86400 - hours * 3600) / 60 )
+
+		channel[$1] = $2
+		qual[$1] = $3
+		last[$1] = $4
+
+		if (days < 1) {
+			if (hours < 1) {
+				if (mins < 1)       state[$1] = c1 "< 1 min"
+				else if (mins < 5)  state[$1] = c1 "< 5 min"
+				else if (mins < 10) state[$1] = c1 "< 10 min"
+				else if (mins < 30) state[$1] = c1 "< 30 min"
+				else                state[$1] = c1 "< 1 hour"
+			}
+			else if (hours < 2)  state[$1] = c2 "< 2 hours"
+			else if (hours < 5)  state[$1] = c2 "< 5 hours"
+			else if (hours < 12) state[$1] = c2 "< 12 hours"
+			else                 state[$1] = c2 "< 1 day"
+		}
+		else if (days < 2)  state[$1] = c3 "< 2 days"
+		else if (days < 3)  state[$1] = c3 "< 3 days"
+		else if (days < 7)  state[$1] = c3 "< 1 week"
+		else if (days < 14) state[$1] = c3 "< 2 weeks"
+		else if (days < 30) state[$1] = c3 "< 1 month"
+		else                state[$1] = c3 "> 1 month"
+
+		state[$1] = state[$1] c0
+		#state[$1] = sprintf("%dd %dh %dm ago", days, hours, mins)
+	}
+
+	while ("/sbin/iwlist wlan0 scan" | getline)
+		switch($0) {
+			case /Address:/:
+				ap = $5
+				last[ap] = now
+				if (state[ap] == "")
+					state[ap] = bold "###### NEW ######" c0
+				else
+					state[ap] = bold "* Now *" c0
+				scanned++
+				break
+
+			case /Channel:/:
+				gsub(":", " ")
+				channel[ap] = $2
+				break
+
+			case /Quality/:
+				gsub("=", " ")
+				if (qual[ap] == "" || qual[ap] < $2)
+					qual[ap] = $2
+				break
+		}
+
+	for(ap in qual)
+		if (ap != mymac) {
+			printf "%s %2d %2d %d %s\n", ap, channel[ap], qual[ap], last[ap], state[ap] |& sort
+			if (state[ap] ~ /NEW/)
+				new++
+			if (now - last[ap] < 24 * 3600) {
+				num[channel[ap]]++
+				qual_sum[channel[ap]] += qual[ap]
+			}
+		}
+	close(sort, "to")
+
+	while (sort |& getline) {
+		print
+		print > out
+	}
+
+	print "Total:", length(qual), " Scanned:", scanned, " New:", new
+
+
+	for(i = 1; i <= 13; i++)
+		printf "%2d %2d %3d\n", i, num[i], qual_sum[i] > stats
+
+	if (ARGV[1] == "plot") {
+		if (ARGV[2] == "sum")
+			cmd = "plot '" stats  "' using 1:3 with boxes title 'Sum Quality'"
+		else if (ARGV[2] == "avg")
+			cmd = "plot '" stats "' using 1:($3/$2) with boxes title 'Avg Quality'"
+		else
+			cmd = "plot '" stats "' using 1:2 with boxes title '#APs'"
+
+		print cmd | "gnuplot -persist"
+	}
+
+}

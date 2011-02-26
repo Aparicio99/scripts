@@ -1,0 +1,35 @@
+#!/usr/bin/awk -f
+function sum(a, b)
+{
+		u1 = match(a, "M")
+		u2 = match(b, "M")
+
+		if (u1 + u2 == 0)
+			return a + b
+
+		v1 = substr(a, 1, u1 - 1)
+		v2 = substr(b, 1, u2 - 1)
+
+		return v1 + v2 "M"
+}
+
+BEGIN {
+	top = "top -bn1"
+	sort = "sort -hr"
+
+	while (top | getline && $1 != "PID");
+
+	while (top | getline) {
+		res[$12] = sum(res[$12], toupper($6))
+		perc[$12] += $10
+		num[$12]++
+	}
+
+	for (cmd in num)
+		printf "%6s  %6s     %s %s\n", res[cmd], perc[cmd],
+					       cmd, (num[cmd] > 1 ? "["num[cmd]"]" : "") |& sort
+	close(sort, "to")
+
+	while (sort |& getline && i++ < 10)
+		print $0
+}
