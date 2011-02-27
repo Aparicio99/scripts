@@ -7,7 +7,7 @@ batleft	(sh)		Calculate battery time left and other information
 constate (sh)		Multiple ping tests
 ctx (sh)		Count system context switches
 doat (sh)		Emulates at command
-enc (sh	)		Encrypt and decrypt files (rename to other thing to decrypt)
+enc (sh)		Encrypt and decrypt files (rename to other thing to decrypt)
 extract	(sh)		Exctract multiple archive formats (rename to other thing to compress)
 gentoo-info (sh)	Shows a gentoo banner and system information
 history_stat (awk)	ZSH history command statistics
@@ -23,6 +23,7 @@ procctx (sh)		Count context switches for given PID
 ps_mem (awk)		Process memory use
 screenshot (sh)		Screenshot wrapper
 stats (awk)		Machine statistics (Boot/Up/Idle time, Forks, Context Switches, Interrupts, wlan0 rx/tx)
+toggle (sh)		Start or stop services (Gentoo specific)
 uterm (sh)		Urxvt wrapper
 
 Other people scripts:

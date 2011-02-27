@@ -1,0 +1,15 @@
+#!/bin/sh
+
+toggle() {
+		if [ -a "$2" ]; then
+			/etc/init.d/$1 pause
+		else
+			/etc/init.d/$1 start
+		fi
+}
+
+case $1 in
+	cupsd)		toggle $1 /var/run/cups/cups.sock ;;
+	postgresql-9.0)	toggle $1 /var/lib/postgresql/9.0/data/postmaster.pid ;;
+	*)		toggle $1 /var/run/$1.pid ;;
+esac
