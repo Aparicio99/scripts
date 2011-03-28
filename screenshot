@@ -1,6 +1,6 @@
 #!/bin/sh
 DIR="${HOME}/imagens/screenshots"
-NAME="%DIR/$(date +%Y-%m-%d-%H-%M-%S).png"
+NAME="$DIR/$(date +%Y-%m-%d-%H-%M-%S).png"
 
 if [ ! -d "${DIR}" ]; then
 	mkdir "${DIR}"
