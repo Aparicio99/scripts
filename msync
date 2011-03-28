@@ -1,0 +1,13 @@
+#!/bin/sh
+
+git_sync() {
+	echo -e "\033[0;32mSyncing $1\033[0m"
+	cd $1
+	git pull
+
+}
+
+git_sync ~/.dot-files
+git_sync ~/scripts
+git_sync ~/.config/awesome
+git_sync ~/.local/share/luakit
