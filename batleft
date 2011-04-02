@@ -1,5 +1,6 @@
 #!/bin/sh
-[[ -z $1 ]] && echo "Usage: batleft <seconds>" && exit -1
+TIME=5
+[[ $1 ]] && TIME=$1
 
 BAT="/sys/class/power_supply/BAT0"
 FILE_NOW="$BAT/charge_now"
@@ -11,15 +12,16 @@ echo "Total capacity: $FULL($DESIGN) µAh"
 read NOW < $FILE_NOW
 echo "Charge t1: $NOW µAh"
 
-sleep $1
+echo "Waiting $TIME seconds"
+sleep $TIME
 
 read NOW2 < $FILE_NOW
 echo "Charge t2: $NOW2 µAh"
 
 DIFF=$((NOW-NOW2))
-VEL=$((DIFF/$1))
+VEL=$((DIFF/$TIME))
 
-echo "Diff in $1 seconds: $DIFF µAh"
+echo "Diff in $TIME seconds: $DIFF µAh"
 
 if (( VEL == 0  )); then
 	echo "Battery charged"
