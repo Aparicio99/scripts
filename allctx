@@ -5,7 +5,7 @@ BEGIN {
 
 	print "Sampling for", interval, "seconds"
 
-	while ("ps -u aparicio --noheaders" | getline)
+	while ("ps -u " ENVIRON["USER"]  " --noheaders" | getline)
 		procs[$1] = $4
 
 	for (pid in procs) {
