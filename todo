@@ -1,0 +1,62 @@
+#!/usr/bin/awk -f
+
+function write()
+{
+	for (i = 1; i <= n; i++)
+		if (data[i])
+				print data[i] > file
+}
+
+BEGIN {
+	file = "/home/aparicio/todo.txt"
+
+	while (getline < file) {
+		data[++n] = $0
+	}
+
+	switch(ARGV[1]) {
+		case "":
+			break
+
+		case "add":
+			data[++n] = ARGV[2]
+			write()
+			break
+
+		case "rm":
+			delete data[ARGV[2]]
+			break
+
+		case "update":
+			data[ARGV[2]] = ARGV[3]
+			break
+
+		case "cat":
+			data[ARGV[2]] = data[ARGV[2]] " " ARGV[3]
+			break
+
+		case "swap":
+			tmp = data[argv[2]]
+			data[argv[2]] = data[argv[3]]
+			data[argv[3]] = tmp
+			break
+
+		case "mv":
+			txt = data[ARGV[2]]
+			delete data[ARGV[2]]
+			for(i = ++n; i > ARGV[3]; i--)
+					data[i] = data[i-1]
+			data[ARGV[3]] = txt
+			break
+
+		default:
+			print "wut?"
+	}
+
+	j = 1
+	for (i = 1; i <= n; i++) {
+		if (data[i])
+				print j++ ")", data[i]
+	}
+
+}
