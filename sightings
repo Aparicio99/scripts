@@ -16,6 +16,7 @@ BEGIN {
 			case /<title>/:
 				sub(".*<title>", "", $0)
 				sub("</title>", "", $0)
+				date = $1
 				title = $0
 				break
 			case "Date:":
@@ -41,9 +42,14 @@ BEGIN {
 				dep = $0
 				break
 			case "</item>":
-				if(apm == "AM") printf("\033[38;5;240m")
-				printf("%s %s   %s %s      %-10s %-20s %-20s %s\n", dayw, title, time, apm, max, app, dep, dur);
-				printf("\033[0m")
+				s = sprintf("%s %s   %s %s      %-10s %-20s %-20s %s", dayw, title, time, apm, max, app, dep, dur);
+
+				if (apm == "AM")
+					s = "\033[38;5;240m"s"\033[0m" # gray
+				else if (date == strftime("%Y-%m-%d", systime()))
+					s = "\033[38;5;46m"s"\033[0m" # green
+
+				print s
 				break
 		}
 	}
