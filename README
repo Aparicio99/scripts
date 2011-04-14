@@ -23,6 +23,7 @@ planet (sh)		Run and update info for xplanet
 procctx (sh)		Count context switches for given PID
 ps_mem (awk)		Process memory use
 screenshot (sh)		Screenshot wrapper
+sightings		Get ISS sightings from nasa
 stats (awk)		Machine statistics (Boot/Up/Idle time, Forks, Context Switches, Interrupts, wlan0 rx/tx)
 toggle (sh)		Start or stop services (Gentoo specific)
 uterm (sh)		Urxvt wrapper
