@@ -48,10 +48,10 @@ BEGIN {
 					s = "\033[38;5;240m"s"\033[0m" # gray
 
 				else if (date == strftime("%Y-%m-%d", systime())) {
-					s = "\033[38;5;46m"s"\033[0m" # green
-
 					if (ARGV[1] == "mail")
 						print s | "mail root -s '### ISS sighting today ###'"
+
+					s = "\033[38;5;46m"s"\033[0m" # green
 				}
 
 				print s
