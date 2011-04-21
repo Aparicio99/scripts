@@ -19,6 +19,7 @@ mergetime (awk)		Merge time statistics for all packages (Gentoo specific)
 meteo (python3)		Weather info
 mpc_time (awk)		Get current playlist total time
 msync (sh)		Sync machine git repos
+notify-send-wrapper(sh) root capable notify-send
 remote (sh)		Run local scripts on remote machines
 planet (sh)		Run and update info for xplanet
 procctx (sh)		Count context switches for given PID
