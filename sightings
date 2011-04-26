@@ -42,7 +42,7 @@ BEGIN {
 				dep = $0
 				break
 			case "</item>":
-				s = sprintf("%s %s   %s %s      %-10s %-20s %-20s %s", dayw, title, time, apm, max, app, dep, dur);
+				s = sprintf("%s %-32s %s %s      %-10s %-20s %-20s %s", dayw, title, time, apm, max, app, dep, dur);
 
 				if (apm == "AM")
 					s = "\033[38;5;240m"s"\033[0m" # gray
