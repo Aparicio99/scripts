@@ -1,5 +1,5 @@
 #!/usr/bin/awk -f
-function pretty(s)
+function p(s)
 {
 	hours = int (s / 3600)
 	mins = int((s -= hours * 3600) / 60)
@@ -39,6 +39,8 @@ BEGIN {
 			if (diff > max[pkg])
 				max[pkg] = diff
 
+			last[pkg] = diff
+
 			sum[pkg] += diff
 			count[pkg]++
 			installed[pkg] = 1
@@ -49,16 +51,17 @@ BEGIN {
 	for (pkg in sum)
 		if (installed[pkg]) {
 			L == "avg" ? l = sum[pkg]/count[pkg] : L == "max" ? l = max[pkg] : l = min[pkg]
-			printf " %6d   %-45s %11s %12s %12s\n", l, pkg, pretty(min[pkg]), pretty(sum[pkg]/count[pkg]), pretty(max[pkg]) |& sort
+			printf " %6d   %-45s %11s %12s %12s %12s\n", l, pkg, p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), p(last[pkg]) |& sort
 			sum_min += min[pkg]
 			sum_avg += sum[pkg]/count[pkg]
 			sum_max += max[pkg]
+			sum_last += last[pkg]
 		}
 	close(sort, "to")
 
 	while (sort |& getline)
 		print
 
-	printf "------------------------------------------------------------- min -------- avg -------- max ------\n"
-	printf " %6d   %-45s %11s %12s %12s\n", sum_min, "total", pretty(sum_min),pretty(sum_avg),pretty(sum_max)
+	printf "------------------------------------------------------------- min -------- avg -------- max ------- last ----\n"
+	printf " %6d   %-45s %11s %12s %12s %12s\n", sum_min, "total", p(sum_min), p(sum_avg), p(sum_max), p(sum_last)
 }
