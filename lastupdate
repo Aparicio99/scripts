@@ -2,7 +2,7 @@
 BEGIN {
 
 	while (getline < "/var/log/emerge.log")
-		if ($2 == "***" && $7 == "--update" && $9 == "world") {
+		if ($2 == "***" && $3 == "emerge" && $0 ~ "--update" && $0 ~ "world") {
 			tmp = $1;
 			getline < "/var/log/emerge.log";
 			if($2 == ">>>")
