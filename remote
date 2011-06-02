@@ -1,7 +1,8 @@
 #!/bin/sh
-SCRIPT=$2
+[ $# -ne 2 ] && echo "Usage: remote <host> <script>" && exit
+
 DEST=$1
+FILE=$(type -P $2)
 
-PROG=$(head -n1 $SCRIPT | sed 's/#!//')
-
-cat $SCRIPT | ssh $DEST $PROG -
+read LINE < $FILE
+ssh $DEST ${LINE#'#!'} - < $FILE
