@@ -1,10 +1,10 @@
 #!/bin/sh
 
 if [ $# == 0 ]; then echo "\
-Copy:	clip <from> <to>
-Print:	clip <name>
-Write:	... | clip <name>
-Names:	sel, cli, sec, buf, clear, print"
+Copy:	clip <src> <dest1> <dest2> ...
+Print:	clip <src>
+Write:	... | clip <src1> <src2>
+Names:	sel, cli, sec, buf, clear, cat"
 fi
 
 declare -A a
@@ -13,7 +13,7 @@ a[cli]="xclip -selection clipboard -o -i"
 a[sec]="xclip -selection secondary -o -i"
 a[buf]="xclip -selection buffer-cut -o -i"
 a[clear]="echo"
-a[print]="cat"
+a[cat]="cat"
 
 ARGS=($@)
 if [[ ${@:$#} == all ]]; then
@@ -21,9 +21,9 @@ if [[ ${@:$#} == all ]]; then
 fi
 
 if [ ! -t 0 ]; then
-	cat | ${a[${ARGS[0]}]/-o/}
+	ARGS=(cat $ARGS)
 elif [ $# == 1 ]; then
-	ARGS=($ARGS print)
+	ARGS=($ARGS cat)
 fi
 
 for i in ${ARGS[*]:1}; do
