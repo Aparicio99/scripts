@@ -1,0 +1,2 @@
+#!/bin/sh
+awk '{print $1}' $HOME/.local/share/luakit/bookmarks | dmenu -l 10 | xargs -r luakit

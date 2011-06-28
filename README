@@ -5,6 +5,7 @@ ap_scan (awk)		Save wireless Access Points and show statistics
 backup (sh)		Rsync incremental backups
 batleft	(sh)		Calculate battery time left and other information
 constate (sh)		Multiple ping tests
+clip (sh)		Clipboard editor
 ctx (sh)		Count system context switches
 doat (sh)		Emulates at command
 enc (sh)		Encrypt and decrypt files (rename to other thing to decrypt)

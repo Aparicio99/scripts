@@ -16,7 +16,7 @@ a[clear]="echo"
 a[print]="cat"
 
 ARGS=($@)
-if [[ ${@:$#}  == all ]]; then
+if [[ ${@:$#} == all ]]; then
 	ARGS=(${@:1:$#-1} sel cli sec buf)
 fi
 
