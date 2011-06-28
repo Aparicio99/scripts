@@ -7,16 +7,17 @@ batleft	(sh)		Calculate battery time left and other information
 constate (sh)		Multiple ping tests
 clip (sh)		Clipboard editor
 ctx (sh)		Count system context switches
-doat (sh)		Emulates at command
+doat (sh)		Emulates at command without daemon
 enc (sh)		Encrypt and decrypt files (rename to other thing to decrypt)
 extract	(sh)		Exctract multiple archive formats (rename to other thing to compress)
 gentoo-info (sh)	Shows a gentoo banner and system information
-history_stat (awk)	ZSH history command statistics
-lastpackage (sh)	Last installed package (Gentoo specific)
-lastsync (sh)		Last portage sync (Gentoo specific)
-lastupdate (awk)	Last world update (Gentoo specific)
+history_stat (awk)	ZSH command history statistics
+lastpackage (sh)	Last installed package (Gentoo)
+lastsync (sh)		Last portage sync (Gentoo)
+lastupdate (awk)	Last world update (Gentoo)
 length (awk)		Show Audio/Video play time
-mergetime (awk)		Merge time statistics for all packages (Gentoo specific)
+luakit_bookmarks (sh)	Luakit bookmarks dmenu loader
+mergetime (awk)		Merge time statistics for all packages (Gentoo)
 meteo (python3)		Weather info
 mpc_time (awk)		Get current playlist total time
 msync (sh)		Sync machine git repos
@@ -28,7 +29,7 @@ ps_mem (awk)		Process memory use
 screenshot (sh)		Screenshot wrapper
 sightings		Get ISS sightings from nasa
 stats (awk)		Machine statistics (Boot/Up/Idle time, Forks, Context Switches, Interrupts, wlan0 rx/tx)
-toggle (sh)		Start or stop services (Gentoo specific)
+toggle (sh)		Start or stop services (Gentoo)
 uterm (sh)		Urxvt wrapper
 
 Other people scripts:
