@@ -19,6 +19,7 @@ length (awk)		Show Audio/Video play time
 luakit_bookmarks (sh)	Luakit bookmarks dmenu loader
 mergetime (awk)		Merge time statistics for all packages (Gentoo)
 meteo (python3)		Weather info
+mouse (awk)		Control mouse power and autosuspend
 mpc_time (awk)		Get current playlist total time
 msync (sh)		Sync machine git repos
 notify-send-wrapper(sh) root capable notify-send
