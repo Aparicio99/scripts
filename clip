@@ -12,7 +12,7 @@ a[sel]="xclip -selection primary -o -i"
 a[cli]="xclip -selection clipboard -o -i"
 a[sec]="xclip -selection secondary -o -i"
 a[buf]="xclip -selection buffer-cut -o -i"
-a[clear]="echo"
+a[clear]="echo -n"
 a[-]="cat"
 
 ARGS=($@)
