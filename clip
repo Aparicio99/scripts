@@ -13,17 +13,15 @@ a[cli]="xclip -selection clipboard -o -i"
 a[sec]="xclip -selection secondary -o -i"
 a[buf]="xclip -selection buffer-cut -o -i"
 a[clear]="echo"
-a[cat]="cat"
+a[-]="cat"
 
 ARGS=($@)
 if [[ ${@:$#} == all ]]; then
 	ARGS=(${@:1:$#-1} sel cli sec buf)
 fi
 
-if [ ! -t 0 ]; then
-	ARGS=(cat $ARGS)
-elif [ $# == 1 ]; then
-	ARGS=($ARGS cat)
+if [ $# == 1 ]; then
+	ARGS=($ARGS -)
 fi
 
 for i in ${ARGS[*]:1}; do
