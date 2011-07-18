@@ -48,10 +48,22 @@ BEGIN {
 			print "wut?"
 	}
 
+	format["\\*\\*"] = "\033[0;1m"  # bold
+	format["__"]     = "\033[0;4m"  # underline
+	format["##"]     = "\033[0;7m"  # block
+	format["!!"]     = "\033[0;31m" # red
+	format["%%"]     = "\033[0;32m" # green
+	format["\\$\\$"] = "\033[0;33m" # yellow
+
 	j = 1
 	for (i = 1; i <= n; i++)
 		if (data[i]) {
-			print j++ ")", data[i]
+			s = data[i]
+			for (token in format) {
+				s = gensub(token "(.*)" token, format[token] "\\1\033[0;0m", "g", s)
+				s = gensub(token "(.*)", format[token] "\\1\033[0;0m", "g", s)
+			}
+			print j++ ")", s
 			if (write)
 				print data[i] > file
 		}
