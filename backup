@@ -1,5 +1,5 @@
 #!/bin/sh
-nc -z null 22
+nc -z null0 22
 if [[ $? != 0 ]]; then
 	echo "Server down"
 	exit -1
@@ -9,7 +9,7 @@ HOST=$(hostname)
 DIRS="/home/aparicio"
 [[ $USER == root ]] && DIRS="$DIRS /etc /var"
 
-DEST="aparicio@null"
+DEST="aparicio@null0"
 BACKUP_DIR="/mnt/backup"
 NEW="$HOST.$(date +%Y.%m.%d.%H%M)"
 

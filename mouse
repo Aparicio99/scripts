@@ -1,6 +1,7 @@
 #!/usr/bin/awk -f
 BEGIN {
-	dir = "/sys/bus/usb/devices/6-1/power/"
+	#dir = "/sys/bus/usb/devices/6-1/power/"
+	dir = "/sys/class/input/mouse0/power/"
 	control = dir "control"
 	auto = dir "autosuspend"
 

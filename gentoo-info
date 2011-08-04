@@ -35,4 +35,5 @@ BEGIN {
 	show("GTK theme", gtk)
 	show("Icons", icon)
 	show("Font", font)
+	print ""
 }
