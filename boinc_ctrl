@@ -1,0 +1,15 @@
+#!/bin/sh
+if [[ -z $1 ]]; then
+	echo "Usage: $0 <#cpus>"
+	exit 0
+fi
+
+read PRESENT < /sys/devices/system/cpu/present
+MAX_CPU=$(( ${PRESENT/0-} + 1 ))
+NUM_CPU=$1
+PCT_CPU=$((100*NUM_CPU/MAX_CPU))
+FILE="/var/lib/boinc/global_prefs_override.xml"
+
+sed -i "s/<max_ncpus_pct>.*<\/max_ncpus_pct>/<max_ncpus_pct>$PCT_CPU.000000<\/max_ncpus_pct>/" $FILE
+
+boinccmd --read_global_prefs_override
