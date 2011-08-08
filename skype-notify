@@ -1,0 +1,36 @@
+#!/bin/sh
+ICON16="/usr/share/icons/hicolor/16x16/apps/skype.png"
+ICON48="/usr/share/icons/hicolor/48x48/apps/skype.png"
+
+case $1 in
+	msgrecv)
+		ACTIVE=$(xdotool getactivewindow getwindowpid)
+		PID=$(pidof skype)
+
+		if [[ $ACTIVE != $PID ]]; then
+			USER="$2"
+			MSG="$3"
+			LEN=50
+			if [[ ${#MSG} > $LEN  ]]; then
+				MSG=$(echo $MSG | fold -w 50)
+			fi
+
+			notify-send -i $ICON48 -- "Message received from $USER" "$MSG"
+		fi
+		;;
+
+	online)
+		USER="$2"
+		notify-send -i $ICON16 -- "<b>$USER</b> is online"
+		;;
+
+	offline)
+		USER="$2"
+		notify-send -i $ICON16 -- "<b>$USER</b> is offline"
+		;;
+
+	*)
+		echo "Wut?"
+		;;
+esac
+
