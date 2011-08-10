@@ -2,6 +2,19 @@
 ICON16="/usr/share/icons/hicolor/16x16/apps/skype.png"
 ICON48="/usr/share/icons/hicolor/48x48/apps/skype.png"
 
+notify() {
+dbus-send --type=method_call --dest='org.freedesktop.Notifications' \
+	/org/freedesktop/Notifications org.freedesktop.Notifications.Notify \
+	string:'skype' \
+	uint32:58 \
+	string:"$1" \
+	string:"$2" \
+	string:"$3" \
+	array:string:'' \
+	dict:string:string:'','' \
+	uint32:3000
+}
+
 case $1 in
 	msgrecv)
 		ACTIVE=$(xdotool getactivewindow getwindowpid)
@@ -15,18 +28,18 @@ case $1 in
 				MSG=$(echo $MSG | fold -w 50)
 			fi
 
-			notify-send -i $ICON48 -- "Message received from $USER" "$MSG"
+			notify $ICON48 "Message received from $USER" "$MSG"
 		fi
 		;;
 
 	online)
 		USER="$2"
-		notify-send -i $ICON16 -- "<b>$USER</b> is online"
+		notify $ICON16 "<b>$USER</b> is online"
 		;;
 
 	offline)
 		USER="$2"
-		notify-send -i $ICON16 -- "<b>$USER</b> is offline"
+		notify $ICON16 "<b>$USER</b> is offline"
 		;;
 
 	*)
