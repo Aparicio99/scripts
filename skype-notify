@@ -11,7 +11,7 @@ dbus-send --type=method_call --dest='org.freedesktop.Notifications' \
 	string:"$2" \
 	string:"$3" \
 	array:string:'' \
-	dict:string:string:'','' \
+	dict:string:byte:'urgency',1 \
 	uint32:3000
 }
 
