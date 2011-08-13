@@ -4,25 +4,22 @@ BEGIN {
 	control = dir "control"
 	auto = dir "autosuspend"
 
-	if (ENVIRON["USER"] != "root")
-		print "Got root?"
-	else
-		switch (ARGV[1]) {
-			case "auto":
-				print "on" > control
-				print 300 > auto
-				print "auto" > control
-				break
-			case "on":
-				print "on" > control
-				break
-			case "off":
-				print 0 > auto
-				print "auto" > control
-				system("sleep 0.01")
-				print 300 > auto
-				break
-			default:
-				print "Usage: mouse [auto|on|off]"
-		}
+	switch (ARGV[1]) {
+		case "auto":
+			print "on" > control
+			print 300 > auto
+			print "auto" > control
+			break
+		case "on":
+			print "on" > control
+			break
+		case "off":
+			print 0 > auto
+			print "auto" > control
+			system("sleep 0.01")
+			print 300 > auto
+			break
+		default:
+			print "Usage: mouse [auto|on|off]"
+	}
 }
