@@ -2,11 +2,11 @@
 if [[ $1 == "false" ]]; then
 	mouse on
 	conky 2> /dev/null &
-	#boinc_ctrl 3
+	boinc_ctrl 3
 else
 	xset dpms force off
 	mouse off
 	pkill conky
-	#boinc_ctrl 4
-	#mpc stop > /dev/null
+	boinc_ctrl 4
+	mpc stop > /dev/null
 fi
