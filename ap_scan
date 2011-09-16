@@ -3,23 +3,25 @@ BEGIN {
 	now = systime()
 	out = "/root/ap_scan.out"
 	stats = "/root/ap_scan.stats"
-	sort = "sort -nk2"
+	sort = "sort -nk3"
 	mymac = "00:24:17:D3:32:5D"
 	new = 0
 	c0 = "\033[0m"
-	c1 = "\033[0;32m"
-	c2 = "\033[0;33m"
-	c3 = "\033[0;31m"
+	c1 = "\033[0;32m" # green
+	c2 = "\033[0;33m" # yellow
+	c3 = "\033[0;31m" # red
+	c4 = "\033[0;34m" # blue
 	bold = "\033[0;1m"
 
 	while (getline < out) {
-		days = int((now - $4) / 86400)
-		hours = int((now - $4 - days * 86400) / 3600)
-		mins = int((now - $4 - days * 86400 - hours * 3600) / 60 )
+		days = int((now - $5) / 86400)
+		hours = int((now - $5 - days * 86400) / 3600)
+		mins = int((now - $5 - days * 86400 - hours * 3600) / 60 )
 
-		channel[$1] = $2
-		qual[$1] = $3
-		last[$1] = $4
+		name[$1] = $2
+		channel[$1] = $3
+		qual[$1] = $4
+		last[$1] = $5
 
 		if (days < 1) {
 			if (hours < 1) {
@@ -39,7 +41,7 @@ BEGIN {
 		else if (days < 7)  state[$1] = c3 "< 1 week"
 		else if (days < 14) state[$1] = c3 "< 2 weeks"
 		else if (days < 30) state[$1] = c3 "< 1 month"
-		else                state[$1] = c3 "> 1 month"
+		else                state[$1] = c4 "> 1 month"
 
 		state[$1] = state[$1] c0
 		#state[$1] = sprintf("%dd %dh %dm ago", days, hours, mins)
@@ -53,7 +55,7 @@ BEGIN {
 				if (state[ap] == "")
 					state[ap] = bold "###### NEW ######" c0
 				else
-					state[ap] = bold "* Now *" c0
+					state[ap] = bold "*** Now ***" c0
 				scanned++
 				break
 
@@ -67,11 +69,16 @@ BEGIN {
 				if (qual[ap] == "" || qual[ap] < $2)
 					qual[ap] = $2
 				break
+
+			case /ESSID:/:
+				gsub("\"", " ")
+				name[ap] = $2
+				break
 		}
 
 	for(ap in qual)
 		if (ap != mymac) {
-			printf "%s %2d %2d %d %s\n", ap, channel[ap], qual[ap], last[ap], state[ap] |& sort
+			printf "%s  %-25s  %2d  %2d  %d  %s\n", ap, name[ap], channel[ap], qual[ap], last[ap], state[ap] |& sort
 			if (state[ap] ~ /NEW/)
 				new++
 			if (now - last[ap] < 24 * 3600) {

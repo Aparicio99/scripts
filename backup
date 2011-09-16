@@ -1,17 +1,11 @@
 #!/bin/sh
-nc -z null0 22
-if [[ $? != 0 ]]; then
-	echo "Server down"
-	exit -1
-fi
-
 HOST=$(hostname)
 DIRS="/home/aparicio"
 [[ $USER == root ]] && DIRS="$DIRS /etc /var"
 
 DEST="aparicio@null0"
-BACKUP_DIR="/mnt/backup"
-NEW="$HOST.$(date +%Y.%m.%d.%H%M)"
+BACKUP_DIR="/mnt/externo1/backups"
+NEW="$HOST.$(date +%Y.%m.%d.%H.%M.%S)"
 
 echo "Backup $DIRS to $DEST:$BACKUP_DIR/$NEW"
 rsync --archive --one-file-system --hard-links --human-readable  \
@@ -19,6 +13,6 @@ rsync --archive --one-file-system --hard-links --human-readable  \
 	--exclude-from=/home/aparicio/.rsync_exclude.txt \
 	--include-from=/home/aparicio/.rsync_include.txt \
 	--link-dest=../$HOST.last \
-	$DIRS $DEST:$BACKUP_DIR/$NEW
+	$DIRS $BACKUP_DIR/$NEW
 
-ssh $DEST ln -sfn $BACKUP_DIR/$NEW $BACKUP_DIR/$HOST.last
+ln -sfn $BACKUP_DIR/$NEW $BACKUP_DIR/$HOST.last
