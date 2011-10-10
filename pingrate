@@ -1,0 +1,25 @@
+#!/bin/sh
+
+flat=0
+
+while true; do
+	out=$(ping -c1 -W1 $1 | awk '/bytes from/{sub("time=", "", $(NF-1)); time = 2 - $(NF-1)/100; if(time<0) time=0; print time  }')
+
+	echo $out
+
+	if [[ $out ]]; then
+		if [[ $flat == 0 ]]; then
+			playsound --volume 0.2 /home/aparicio/scripts/beep.wav > /dev/null
+			sleep $out
+		else
+			pkill playsound
+			flat=0
+		fi
+	else
+		if [[ $flat == 0 ]]; then
+			playsound --volume 0.2 --loop 100 /home/aparicio/scripts/flat.wav &
+		fi
+		flat=1
+		sleep 1
+	fi
+done
