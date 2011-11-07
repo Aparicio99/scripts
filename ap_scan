@@ -4,7 +4,6 @@ BEGIN {
 	out = "/root/ap_scan.out"
 	stats = "/root/ap_scan.stats"
 	sort = "sort -nk3"
-	mymac = "00:24:17:D3:32:5D"
 	new = 0
 	c0 = "\033[0m"
 	c1 = "\033[0;32m" # green
@@ -54,8 +53,10 @@ BEGIN {
 				last[ap] = now
 				if (state[ap] == "")
 					state[ap] = bold "###### NEW ######" c0
-				else
+				else {
 					state[ap] = bold "*** Now ***" c0
+					seen[ap] = 1
+				}
 				scanned++
 				break
 
@@ -72,24 +73,28 @@ BEGIN {
 
 			case /ESSID:/:
 				gsub("\"", " ")
-				name[ap] = $2
+				if ($2 == "")
+					name[ap] = "[noname]"
+				else
+					name[ap] = $2
 				break
 		}
 
-	for(ap in qual)
-		if (ap != mymac) {
-			printf "%s  %-25s  %2d  %2d  %d  %s\n", ap, name[ap], channel[ap], qual[ap], last[ap], state[ap] |& sort
-			if (state[ap] ~ /NEW/)
-				new++
-			if (now - last[ap] < 24 * 3600) {
-				num[channel[ap]]++
-				qual_sum[channel[ap]] += qual[ap]
-			}
+	for(ap in qual) {
+		printf "%s  %-25s  %2d  %2d  %d  %s\n", ap, name[ap], channel[ap], qual[ap], last[ap], state[ap] |& sort
+		if (state[ap] ~ /NEW/)
+			new++
+		if (now - last[ap] < 24 * 3600) {
+			num[channel[ap]]++
+			qual_sum[channel[ap]] += qual[ap]
 		}
+	}
 	close(sort, "to")
 
 	while (sort |& getline) {
-		print
+
+		if(!(ARGV[1] == "now") || seen[$1])
+			print
 		print > out
 	}
 

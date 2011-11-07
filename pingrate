@@ -17,7 +17,7 @@ while true; do
 		fi
 	else
 		if [[ $flat == 0 ]]; then
-			playsound --volume 0.2 --loop 100 /home/aparicio/scripts/flat.wav &
+			continue;#playsound --volume 0.2 --loop 100 /home/aparicio/scripts/flat.wav &
 		fi
 		flat=1
 		sleep 1
