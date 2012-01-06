@@ -1,0 +1,18 @@
+#!/bin/sh
+
+if [ -e $1 ]; then
+	echo "Usage: scanner <filename>"
+	exit
+fi
+
+DEFAULT=200
+
+echo "Resolution: 100|150|200|300|400|600|1200|2400|4800|9600dpi"
+echo -n "(Enter for $DEFAULT) ? "
+read RES
+
+if [ -e $RES ]; then
+	RES=$DEFAULT
+fi
+
+scanimage --resolution $RES -p | pnmtopng > $1
