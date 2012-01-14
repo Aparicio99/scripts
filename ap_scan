@@ -43,43 +43,46 @@ BEGIN {
 		else                state[$1] = c4 "> 1 month"
 
 		state[$1] = state[$1] c0
-		#state[$1] = sprintf("%dd %dh %dm ago", days, hours, mins)
 	}
+	ARGC = 1
+}
 
-	while ("/sbin/iwlist wlan0 scan" | getline)
-		switch($0) {
-			case /Address:/:
-				ap = $5
-				last[ap] = now
-				if (state[ap] == "")
-					state[ap] = bold "###### NEW ######" c0
-				else {
-					state[ap] = bold "*** Now ***" c0
-					seen[ap] = 1
-				}
-				scanned++
-				break
+/Address:/ {
+	ap = $5
+	last[ap] = now
+	if (state[ap] == "")
+		state[ap] = bold "###### NEW ######" c0
+	else
+		state[ap] = bold "*** Now ***" c0
+	seen[ap] = 1
+	scanned++
+}
 
-			case /Channel:/:
-				gsub(":", " ")
-				channel[ap] = $2
-				break
+/Channel:/ {
+	gsub(":", " ")
+	channel[ap] = $2
+}
 
-			case /Quality/:
-				gsub("=", " ")
-				if (qual[ap] == "" || qual[ap] < $2)
-					qual[ap] = $2
-				break
+/\(Channel / {
+	gsub(")", " ")
+	channel[ap] = $4
+}
 
-			case /ESSID:/:
-				gsub("\"", " ")
-				if ($2 == "")
-					name[ap] = "[noname]"
-				else
-					name[ap] = $2
-				break
-		}
+/Quality/ {
+	gsub("=", " ")
+	if (qual[ap] == "" || qual[ap] < $2)
+		qual[ap] = $2
+}
 
+/ESSID:/ {
+	gsub("\"", " ")
+	if ($2 == "")
+		name[ap] = "[noname]"
+	else
+		name[ap] = $2
+}
+
+END {
 	for(ap in qual) {
 		printf "%s  %-25s  %2d  %2d  %d  %s\n", ap, name[ap], channel[ap], qual[ap], last[ap], state[ap] |& sort
 		if (state[ap] ~ /NEW/)

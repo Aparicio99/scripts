@@ -15,6 +15,7 @@ dbus-send --type=method_call --dest='org.freedesktop.Notifications' \
 	uint32:3000
 }
 
+
 case $1 in
 	msgrecv)
 		ACTIVE=$(xdotool getactivewindow getwindowpid)
@@ -30,6 +31,7 @@ case $1 in
 
 			notify $ICON48 "Message received from $USER" "$MSG"
 		fi
+		$HOME/scripts/scroll_led &
 		;;
 
 	online)
@@ -44,6 +46,7 @@ case $1 in
 
 	*)
 		echo "Wut?"
+		notify "Wut"
 		;;
 esac
 
