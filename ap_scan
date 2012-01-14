@@ -83,22 +83,19 @@ BEGIN {
 }
 
 END {
-	for(ap in qual) {
-		printf "%s  %-25s  %2d  %2d  %d  %s\n", ap, name[ap], channel[ap], qual[ap], last[ap], state[ap] |& sort
+	PROCINFO["sorted_in"] = "@val_num_asc"
+	for(ap in channel) {
+
+		if(ARGV[1] != "now" || seen[ap])
+			printf "%s  %-25s  %2d  %2d  %d  %s\n", ap, name[ap], channel[ap], qual[ap], strftime("%c", last[ap]), state[ap]
+		printf "%s  %-25s  %2d  %2d  %s\n", ap, name[ap], channel[ap], qual[ap], last[ap] > out
+
 		if (state[ap] ~ /NEW/)
 			new++
 		if (now - last[ap] < 24 * 3600) {
 			num[channel[ap]]++
 			qual_sum[channel[ap]] += qual[ap]
 		}
-	}
-	close(sort, "to")
-
-	while (sort |& getline) {
-
-		if(!(ARGV[1] == "now") || seen[$1])
-			print
-		print > out
 	}
 
 	print "Total:", length(qual), " Scanned:", scanned, " New:", new
