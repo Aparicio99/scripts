@@ -14,7 +14,10 @@ BEGIN {
 			break
 
 		case "add":
-			data[++n] = ARGV[2]
+			n++
+			data[n] = ARGV[2]
+			for(i = 3; i <= ARGC; i++)
+				data[n] = data[n] " " ARGV[i]
 			break
 
 		case "rm":
