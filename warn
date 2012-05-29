@@ -1,0 +1,4 @@
+#!/bin/sh
+$@
+notify-send-wrapper -t 3000 "##### Command Done #####"  "\n$*\n"
+playsound --volume 1 /home/aparicio/scripts/beep.wav >/dev/null
