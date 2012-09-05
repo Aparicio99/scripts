@@ -3,8 +3,8 @@
 if [ $# == 0 ]; then echo "\
 Copy:	clip <src> <dest1> <dest2> ...
 Print:	clip <src>
-Write:	... | clip <src1> <src2>
-Names:	sel, cli, sec, buf, clear, cat"
+Write:	... | clip - <dest>
+Names:	sel, cli, sec, buf, clear, -"
 fi
 
 declare -A a

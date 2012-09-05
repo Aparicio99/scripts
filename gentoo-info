@@ -32,8 +32,8 @@ BEGIN {
 	show("Window manager", wm)
 	show("Terminal", term)
 	show("Shell", shell)
-	show("GTK theme", gtk)
-	show("Icons", icon)
+	#show("GTK theme", gtk)
+	#show("Icons", icon)
 	show("Font", font)
 	print ""
 }

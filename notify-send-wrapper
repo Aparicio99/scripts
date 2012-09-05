@@ -1,6 +1,7 @@
 #!/bin/bash
 user=aparicio
-ARGS=${@:1:${#@}-1}
+ARGS=${@:1:${#@}-2}
+TITLE=${@:${#@}-1:1}
 MSG=${@:${#@}}
 
 export XAUTHORITY=/home/$user/.Xauthority
@@ -8,5 +9,5 @@ export XAUTHORITY=/home/$user/.Xauthority
 if [ $EUID == 0 ]; then
 	su $user -c "notify-send $ARGS '$MSG'"
 else
-	notify-send $ARGS "$MSG"
+	notify-send $ARGS "$TITLE" "$MSG"
 fi

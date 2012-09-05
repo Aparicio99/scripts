@@ -1,6 +1,6 @@
 #!/bin/sh
 
-if [ $1 ]; then
+if [ ! $1 ]; then
 	echo "Usage: scanner <filename>"
 	exit
 fi
@@ -15,4 +15,11 @@ if [ -e $RES ]; then
 	RES=$DEFAULT
 fi
 
-scanimage --resolution $RES -p | pnmtopng > $1
+if [ ${1#*.} = "png" ]; then
+	scanimage --resolution $RES -p | pnmtopng > $1
+	chown aparicio $1
+elif [ ${1#*.} = "pdf" ]; then
+	scanimage --resolution $RES -p | pnmtops > $1
+	cd $(dirname $1)
+	ps2pdf $1
+fi
