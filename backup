@@ -3,11 +3,10 @@ HOST=$(hostname)
 DIRS="/home/aparicio"
 [[ $USER == root ]] && DIRS="$DIRS /etc /var"
 
-DEST="aparicio@null0"
 BACKUP_DIR="/mnt/externo1/backups"
 NEW="$HOST.$(date +%Y.%m.%d.%H.%M.%S)"
 
-echo "Backup $DIRS to $DEST:$BACKUP_DIR/$NEW"
+echo "Backup $DIRS to $BACKUP_DIR/$NEW"
 rsync --archive --one-file-system --hard-links --human-readable  \
 	--numeric-ids --delete --delete-excluded --progress --compress \
 	--exclude-from=/home/aparicio/.rsync_exclude.txt \
