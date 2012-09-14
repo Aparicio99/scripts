@@ -1,0 +1,16 @@
+#!/bin/sh
+on=1
+count=0
+while (( count < 20 )); do
+	if [ $on == 1 ]; then
+		xset led 3
+		on=0
+	else
+		xset -led 3
+		on=1
+	fi
+	sleep 0.5s
+	let count=count+1
+done
+
+xset led 3
