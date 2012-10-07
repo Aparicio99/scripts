@@ -31,7 +31,7 @@ case $1 in
 
 			notify $ICON48 "Message received from $USER" "$MSG"
 		fi
-		$HOME/scripts/scroll_led &
+		$HOME/scripts/scroll_led blink
 		;;
 
 	online)

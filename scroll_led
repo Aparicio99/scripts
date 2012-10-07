@@ -1,16 +1,59 @@
 #!/bin/sh
-on=1
-count=0
-while (( count < 20 )); do
-	if [ $on == 1 ]; then
-		xset led 3
-		on=0
-	else
-		xset -led 3
-		on=1
-	fi
-	sleep 0.5s
-	let count=count+1
-done
 
-xset led 3
+FILE=/tmp/scroll_blink
+
+enabled() {
+	[ -e $FILE ]
+}
+
+disable() {
+	enabled && /bin/rm $FILE
+}
+
+led() {
+	if [[ "$1" == "off" ]]; then
+		xset -led named "Scroll Lock"
+	else
+		xset led named "Scroll Lock"
+	fi
+}
+
+blink() {
+	count=10
+	while [[ $count > 0 && -e $FILE ]]; do
+		led on
+		sleep $1
+		led off
+		sleep $2
+		let count=count-1
+	done
+	enabled
+}
+
+long_blink() {
+		touch $FILE
+
+		blink 0.1 0.1 &&
+		blink 0.2 0.2 &&
+		blink 0.4 0.2 &&
+		blink 0.8 0.4 &&
+		blink 1.6 0.4 &&
+		blink 2.0 0.6 &&
+		led on
+}
+
+case "$1" in
+	on)
+		led on
+		;;
+	off)
+		disable
+		led off
+		;;
+	blink)
+		long_blink &
+		;;
+	*)
+		echo "usage: $0 (on|off|blink)"
+		;;
+esac
