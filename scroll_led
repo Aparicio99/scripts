@@ -51,6 +51,7 @@ case "$1" in
 		led off
 		;;
 	blink)
+		disable && sleep 1
 		long_blink &
 		;;
 	*)
