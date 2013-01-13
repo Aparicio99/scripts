@@ -16,4 +16,5 @@ if [[ $# = 0 ]]; then
 	echo "Usage: screenshot [scr|area]"
 else
 	notify-send "Screenshot taken!" $NAME
+	ln -sf "${NAME}" "${DIR}/last.png"
 fi
