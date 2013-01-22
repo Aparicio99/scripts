@@ -53,8 +53,22 @@ BEGIN {
 	L = ARGV[1]
 	for (pkg in sum)
 		if (installed[pkg]) {
-			L == "avg" ? l = sum[pkg]/count[pkg] : L == "max" ? l = max[pkg] : l = min[pkg]
-			printf "%6d  %-40s %10s %15s %15s %15s %15s\n", l, pkg, p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), p(last[pkg]), p(sum[pkg]) |& sort
+
+			switch (L) {
+				case "min":
+					l = min[pkg]
+					break
+				case "avg":
+					l = sum[pkg]/count[pkg]
+					break
+				case "max":
+					l = max[pkg]
+					break
+				default:
+					l = last[pkg]
+			}
+
+			printf "%6d  %-40s %10s %15s %15s %15s %15s\n", l, pkg, p(last[pkg]), p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), p(sum[pkg]) |& sort
 			sum_min += min[pkg]
 			sum_avg += sum[pkg]/count[pkg]
 			sum_max += max[pkg]
@@ -66,6 +80,6 @@ BEGIN {
 	while (sort |& getline)
 		print
 
-	printf "----------------------------------------------------- min ----------- avg ----------- max ---------- last --------- total ---\n"
+	printf "----------------------------------------------------- last ----------- min ----------- avg ---------- max --------- total ---\n"
 	printf "%6d  %-39s %10s %15s %15s %15s %15s\n", sum_min, "total", p(sum_min), p(sum_avg), p(sum_max), p(sum_last), p(total)
 }
