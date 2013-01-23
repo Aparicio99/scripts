@@ -1,25 +1,51 @@
-#!/bin/sh
+#!/usr/bin/perl
+use Net::Ping;
 
-flat=0
+if ($#ARGV == 0) {
+	$host = $ARGV[0];
+} else {
+	print "Usage: pingrate <host>\n";
+	exit();
+}
 
-while true; do
-	out=$(ping -c1 -W1 $1 | awk '/bytes from/{sub("time=", "", $(NF-1)); time = 2 - $(NF-1)/100; if(time<0) time=0; print time  }')
+$p = Net::Ping->new("icmp");
+$p->hires();
 
-	echo $out
+sub beep {
+	system("playsound --volume 0.2 /home/aparicio/scripts/beep.wav >/dev/null");
+}
 
-	if [[ $out ]]; then
-		if [[ $flat == 0 ]]; then
-			playsound --volume 0.2 /home/aparicio/scripts/beep.wav > /dev/null
-			sleep $out
-		else
-			pkill playsound
-			flat=0
-		fi
-	else
-		if [[ $flat == 0 ]]; then
-			continue;#playsound --volume 0.2 --loop 100 /home/aparicio/scripts/flat.wav &
-		fi
-		flat=1
-		sleep 1
-	fi
-done
+sub flat {
+	system("playsound --volume 0.1 /home/aparicio/scripts/flat.wav >/dev/null");
+}
+
+$fail = 0;
+
+while (1) {
+	($ret, $time, $ip) = $p->ping($host, 2);
+	open(OUT, ">/tmp/router_status");
+	if ($ret) {
+		printf "%.2f ms from $ip\n", $time*1000, $ip;
+		printf OUT "%.2f ms\n", $time*1000;
+		if ($fail > 1) {
+			beep(); beep();
+		}
+		if ($fail > 0) {
+			$fail = 0;
+		}
+
+	} else {
+		printf "unreachable\n";
+		print OUT "unreachable\n";
+		if ($fail <= 2) {
+			beep();
+		} elsif ($fail == 3) {
+			flat();
+		}
+		$fail++;
+	}
+	close(OUT);
+	sleep(2);
+}
+
+$p->close();
