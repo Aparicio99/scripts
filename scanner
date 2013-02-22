@@ -5,9 +5,9 @@ if [ ! $1 ]; then
 	exit
 fi
 
-DEFAULT=200
+DEFAULT=150
 
-echo "Resolution: 100|150|200|300|400|600|1200|2400|4800|9600dpi"
+echo "Resolution: 75|100|150|300|600|1200dpi"
 echo -n "(Enter for $DEFAULT) ? "
 read RES
 
@@ -15,11 +15,11 @@ if [ -e $RES ]; then
 	RES=$DEFAULT
 fi
 
+CMD="scanimage --mode Color --resolution $RES -p"
+
 if [ ${1#*.} = "png" ]; then
-	scanimage --resolution $RES -p | pnmtopng > $1
-	chown aparicio $1
+	$CMD | pnmtopng > $1
+
 elif [ ${1#*.} = "pdf" ]; then
-	scanimage --resolution $RES -p | pnmtops > $1
-	cd $(dirname $1)
-	ps2pdf $1
+	$CMD | pnmtops | ps2pdf - $1
 fi
