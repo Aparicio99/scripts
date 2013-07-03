@@ -6,24 +6,27 @@ STOPPED     = 0
 DOWNLOADING = 4
 UPLOADING   = 6
 
+COLOR1 = '${color}'
+COLOR2 = '${color3}'
+
 def transmission_post(conn, headers={}):
 
-	params = "{\"arguments\":{\"fields\":[\"error\",\"errorString\",\"eta\",\"id\",\"isFinished\",\"leftUntilDone\",\"name\",\"peersGettingFromUs\",\"peersSendingToUs\",\"rateDownload\",\"rateUpload\",\"sizeWhenDone\",\"status\",\"uploadRatio\"]},\"method\":\"torrent-get\",\"tag\":4}"
+	params = '{"arguments":{"fields":["error","errorString","eta","id","isFinished","leftUntilDone","name","peersGettingFromUs","peersSendingToUs","rateDownload","rateUpload","sizeWhenDone","status","uploadRatio"]},"method":"torrent-get","tag":4}'
 
-	conn.request("POST", "/transmission/rpc/", params, headers)
+	conn.request('POST', '/transmission/rpc/', params, headers)
 	response = conn.getresponse()
 
 	return response.read().decode()
 
 def transmission_list(host):
 
-	conn = http.client.HTTPConnection(host + ':9091')
+	conn = http.client.HTTPConnection(host, 9091, timeout=1)
 
 	data = transmission_post(conn)
 
 	matches = re.search('<code>X-Transmission-Session-Id: (.+)</code>', data)
 	session_id = matches.group(1)
-	headers = {"X-Transmission-Session-Id": session_id}
+	headers = {'X-Transmission-Session-Id': session_id}
 
 	data = transmission_post(conn, headers)
 
@@ -41,11 +44,11 @@ def transmission_list(host):
 
 def bandwidth(bps):
 	if bps < 1024:
-		return str(bps) + "B"
+		return str(bps) + 'B'
 	elif bps < 1048576:
-		return str(round(bps/1024, 1)) + "K"
+		return str(round(bps/1024, 1)) + 'K'
 	else:
-		return str(round(bps/1048576, 1)) + "M"
+		return str(round(bps/1048576, 1)) + 'M'
 
 def time_left(s):
 	days = int(s/86400)
@@ -56,13 +59,13 @@ def time_left(s):
 	secs = s - mins * 60
 
 	if days > 0:
-		return "%dd %dh %02dm %02ds" % (days, hours, mins, secs)
+		return '%dd %dh %02dm %02ds' % (days, hours, mins, secs)
 	elif hours > 0:
-		return "%dh %02dm %02ds" % (hours, mins, secs)
+		return '%dh %02dm %02ds' % (hours, mins, secs)
 	elif mins > 0:
-		return "%02dm %02ds" % (mins, secs)
+		return '%02dm %02ds' % (mins, secs)
 	else:
-		return "%ds" % secs
+		return '%ds' % secs
 
 def print_torrent(t):
 	id = t
@@ -75,26 +78,28 @@ def print_torrent(t):
 		progress = 0
 
 	if t['eta'] != -1:
-		eta = "${color}ETA ${color3}" + time_left(t['eta'])
+		eta = COLOR1 + "ETA " + COLOR2 + time_left(t['eta'])
 	else:
 		eta = ""
 
-	print('${color}' + name)
-	print('${color3}' + str(progress) + "%", "${color}Up${color3}", upload, "${color}Down${color3}", download, eta)
-	print()
+	print('%s%s\n%s%d%% %sUp %s%s %sDown %s%s %s\n' % (COLOR1, name, COLOR2, progress, COLOR1, COLOR2, upload, COLOR1, COLOR2, download, eta))
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
 
 	if len(sys.argv) != 2:
-		print("Usage: transmission-status <host>")
+		print('Usage: transmission-status <host>')
 		exit()
 	else:
 		host = sys.argv[1]
 
 	torrents = transmission_list(host)
 
+	print_header = False
+
 	for id in torrents:
 		t = torrents[id]
 		if t['status'] != 0:
+			if not print_header:
+				print(COLOR1 + '${font mono:size=10}${alignc}Transmission${font}\n')
 			print_torrent(t)
