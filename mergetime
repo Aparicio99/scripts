@@ -2,7 +2,7 @@
 function p(s)
 {
 	days = int(s / 86400)
-	hours = int (s / 3600)
+	hours = int((s -= days * 86400) / 3600)
 	mins = int((s -= hours * 3600) / 60)
 	secs = s - mins * 60
 

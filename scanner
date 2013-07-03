@@ -20,6 +20,9 @@ CMD="scanimage --mode Color --resolution $RES -p"
 if [ ${1#*.} = "png" ]; then
 	$CMD | pnmtopng > $1
 
+elif [ ${1#*.} = "jpg" ]; then
+	$CMD | pnmtojpeg > $1
+
 elif [ ${1#*.} = "pdf" ]; then
 	$CMD | pnmtops | ps2pdf - $1
 fi
