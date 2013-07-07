@@ -102,4 +102,5 @@ if __name__ == '__main__':
 		if t['status'] != 0:
 			if not print_header:
 				print(COLOR1 + '${font mono:size=10}${alignc}Transmission${font}\n')
+				print_header = True
 			print_torrent(t)
