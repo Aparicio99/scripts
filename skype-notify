@@ -29,7 +29,7 @@ case $1 in
 				MSG=$(echo $MSG | fold -w 50)
 			fi
 
-			notify $ICON48 "Message received from $USER" "$MSG"
+			notify $ICON48 "Message received from $USER" "${MSG//[^a-zA-Z0-9 ]/}"
 		fi
 		$HOME/scripts/scroll_led blink
 		;;
