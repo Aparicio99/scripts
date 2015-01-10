@@ -1,9 +1,9 @@
 #!/usr/bin/gawk -f
 BEGIN {
 	ORS = "\r\n"
-	sock = "/inet/tcp/0/spaceflight1.nasa.gov/http"
-	print "GET /realdata/sightings/cities/rss/index.cgi?country=Portugal&region=None&city=Lisbon HTTP/1.1" |& sock
-	print "Host: spaceflight1.nasa.gov" |& sock
+	sock = "/inet/tcp/0/spotthestation.nasa.gov/http"
+	print "GET /sightings/xml_files/Portugal_None_Lisbon.xml HTTP/1.1" |& sock
+	print "Host: spotthestation.nasa.gov" |& sock
 	print "" |& sock
 
 	while (sock |& getline && $1 != "<?xml");
