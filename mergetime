@@ -22,16 +22,13 @@ BEGIN {
 
 	while (getline < "/var/log/emerge.log")
 		if ($2 == ">>>" && $3 == "emerge") {
-			#sub("-[^-]*(-r[^-]*)? ", " ")
 			pkg = $7
 			start[pkg] = $1
 		}
 		else if ($2 == ">>>" && $3 == "unmerge") {
-			#sub("-[^-]*(-r[^-]*)?$", "")
 			installed[$5] = 0
 		}
 		else if ($2 == ":::") {
-			#sub("-[^-]*(-r[^-]*)? ", " ")
 			pkg = $8
 			diff = $1 - start[pkg]
 
@@ -72,26 +69,24 @@ BEGIN {
 					l = last[pkg]
 			}
 
-			printf "%6d %s%15s %15s %15s %15s %15s    %s\n", l, color, p(last[pkg]), p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), p(sum[pkg]), pkg |& sort
+			printf "%6d %s%15s %15s %15s %15s      %s\n", l, color, p(last[pkg]), p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), pkg |& sort
 			sum_min += min[pkg]
 			sum_avg += sum[pkg]/count[pkg]
 			sum_max += max[pkg]
 			sum_last += last[pkg]
-			total += sum[pkg]
 		}
 	close(sort, "to")
 
 	i = 0
 	while (sort |& getline) {
-		if (++i % 8 == 0)
+		if (++i % 10 == 0)
 			printf "%s", NORMAL
-		else if (i % 4 == 0)
+		else if (i % 5 == 0)
 			printf "%s", GRAY
 		print
 	}
 
-
 	printf "%s", YELLOW
-	printf "---------------- last ----------- min ----------- avg ----------- max --------- total ----------------------------------------\n"
-	printf "%6d %15s %15s %15s %15s %15s    %s\n", sum_min, p(sum_last), p(sum_min), p(sum_avg), p(sum_max), p(total), "total"
+	printf "---------------- last ----------- min ----------- avg ----------- max ------------------------------------------------\n"
+	printf "%6d %15s %15s %15s %15s\n", sum_min, p(sum_last), p(sum_min), p(sum_avg), p(sum_max)
 }
