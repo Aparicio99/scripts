@@ -8,10 +8,13 @@ function p(s)
 
 	if (days > 0)
 		return sprintf("%dd %dh %02dm %02ds", days, hours, mins, secs)
+
 	if (hours > 0)
 		return sprintf("%dh %02dm %02ds", hours, mins, secs)
+
 	if (mins > 0)
 		return sprintf("%dm %02ds", mins, secs)
+
 	return sprintf("%ds", secs)
 }
 
@@ -50,26 +53,20 @@ BEGIN {
 			installed[pkg] = 1
 		}
 
+	if (ARGC > 1) {
+		if (ARGV[1] == "all")
+			VERBOSE = 1
+	}
+
 	sort = "sort -n"
-	L = ARGV[1]
 	for (pkg in sum)
 		if (installed[pkg]) {
 
-			switch (L) {
-				case "min":
-					l = min[pkg]
-					break
-				case "avg":
-					l = sum[pkg]/count[pkg]
-					break
-				case "max":
-					l = max[pkg]
-					break
-				default:
-					l = last[pkg]
-			}
+			if (VERBOSE)
+				printf "%6d %s%15s %15s %15s %15s      %s\n", min[pkg], color, p(last[pkg]), p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), pkg |& sort
+			else
+				printf "%6d %s%15s      %s\n", min[pkg], color, p(min[pkg]), pkg |& sort
 
-			printf "%6d %s%15s %15s %15s %15s      %s\n", l, color, p(last[pkg]), p(min[pkg]), p(sum[pkg]/count[pkg]), p(max[pkg]), pkg |& sort
 			sum_min += min[pkg]
 			sum_avg += sum[pkg]/count[pkg]
 			sum_max += max[pkg]
@@ -87,6 +84,11 @@ BEGIN {
 	}
 
 	printf "%s", YELLOW
-	printf "---------------- last ----------- min ----------- avg ----------- max ------------------------------------------------\n"
-	printf "%6d %15s %15s %15s %15s\n", sum_min, p(sum_last), p(sum_min), p(sum_avg), p(sum_max)
+	if (VERBOSE) {
+		printf "---------------- last ----------- min ----------- avg ----------- max ------------------------------------------------\n"
+		printf "%6d %15s %15s %15s %15s\n", sum_min, p(sum_last), p(sum_min), p(sum_avg), p(sum_max)
+	} else {
+		printf "----------------- min ------------------------------------------------\n"
+		printf "%6d %15s\n", sum_min, p(sum_min)
+	}
 }
