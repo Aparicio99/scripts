@@ -5,9 +5,9 @@ if [ ! $1 ]; then
 	exit
 fi
 
-DEFAULT=150
+DEFAULT=100
 
-echo "Resolution: 75|100|150|300|600|1200dpi"
+echo "Resolution: 75|100|200|300|600|1200dpi"
 echo -n "(Enter for $DEFAULT) ? "
 read RES
 
