@@ -23,13 +23,23 @@ BEGIN {
 	GRAY="[38;5;245m"
 	NORMAL="[0m"
 
+	VERBOSE = 0
+	COLOR = 1
+	for (i = 1; i < ARGC; i++) {
+		if (ARGV[i] == "all")
+			VERBOSE = 1
+		else if (ARGV[i] == "nocolor")
+			COLOR = 0
+	}
+
+	# Get installed packages from eix because the log messes up when package names changes
+	while ("eix -I --format '<installedversions:NAMEVERSION>' --pure-packages" | getline)
+		installed[$1] = 1
+
 	while (getline < "/var/log/emerge.log")
 		if ($2 == ">>>" && $3 == "emerge") {
 			pkg = $7
 			start[pkg] = $1
-		}
-		else if ($2 == ">>>" && $3 == "unmerge") {
-			installed[$5] = 0
 		}
 		else if ($2 == ":::") {
 			pkg = $8
@@ -50,17 +60,8 @@ BEGIN {
 
 			sum[pkg] += diff
 			count[pkg]++
-			installed[pkg] = 1
 		}
 
-	VERBOSE = 0
-	COLOR = 1
-	for (i = 1; i < ARGC; i++) {
-		if (ARGV[i] == "all")
-			VERBOSE = 1
-		else if (ARGV[i] == "nocolor")
-			COLOR = 0
-	}
 
 	sort = "sort -n"
 	for (pkg in sum)
