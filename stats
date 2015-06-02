@@ -24,6 +24,8 @@ function si(b, u)
 		return sprintf("%.2f M%s", b/m^2, u)
 	if (b < m^4)
 		return sprintf("%.2f G%s", b/m^3, u)
+	if (b < m^5)
+		return sprintf("%.2f T%s", b/m^4, u)
 }
 
 BEGIN {
@@ -61,8 +63,8 @@ BEGIN {
 
 	getline rx_bytes_wlan0 < "/sys/class/net/wlan0/statistics/rx_bytes"
 	getline tx_bytes_wlan0 < "/sys/class/net/wlan0/statistics/tx_bytes"
-	getline rx_bytes_eth0 < "/sys/class/net/eth0/statistics/rx_bytes"
-	getline tx_bytes_eth0 < "/sys/class/net/eth0/statistics/tx_bytes"
+	getline rx_bytes_eth0 < "/sys/class/net/lan0/statistics/rx_bytes"
+	getline tx_bytes_eth0 < "/sys/class/net/lan0/statistics/tx_bytes"
 	rx_bytes = rx_bytes_wlan0 + rx_bytes_eth0
 	tx_bytes = tx_bytes_wlan0 + tx_bytes_eth0
 
