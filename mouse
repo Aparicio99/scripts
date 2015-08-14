@@ -1,25 +1,41 @@
-#!/usr/bin/awk -f
-BEGIN {
-	dir = "/sys/bus/usb/devices/2-1.1/power/"
-	control = dir "control"
-	auto = dir "autosuspend"
+#!/bin/bash
 
-	switch (ARGV[1]) {
-		case "auto":
-			print "on" > control
-			print 300 > auto
-			print "auto" > control
-			break
-		case "on":
-			print "on" > control
-			break
-		case "off":
-			print 0 > auto
-			print "auto" > control
-			system("sleep 0.01")
-			print 300 > auto
-			break
-		default:
-			print "Usage: mouse [auto|on|off]"
-	}
+function mouse_usb_port() {
+	for port in /sys/bus/usb/devices/?-?.?; do
+		for device in ${port}/?-?.?:?.?; do
+			read class < ${device}/bInterfaceClass
+			read subclass < ${device}/bInterfaceSubClass
+			read protocol < ${device}/bInterfaceProtocol
+			if [[ $class == 03 && $subclass == 01 && $protocol == 02 ]]; then
+				echo $port
+				return
+			fi
+		done
+	done
 }
+
+dir="$(mouse_usb_port)/power"
+control="${dir}/control"
+auto="${dir}/autosuspend"
+
+case "$1" in
+
+	"auto")
+		echo on > $control
+		echo 300 > $auto
+		echo "auto" > $control
+		;;
+
+	"on")
+		echo "on" > $control
+		;;
+
+	 "off")
+		echo 0 > $auto
+		echo auto > $control
+		sleep 0.01
+		echo 300 > $auto
+		;;
+	*)
+		echo "Usage: mouse [auto|on|off]"
+esac
