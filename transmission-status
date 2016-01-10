@@ -7,7 +7,7 @@ DOWNLOADING = 4
 UPLOADING   = 6
 
 COLOR1 = '${color}'
-COLOR2 = '${color3}'
+COLOR2 = '${color0}'
 
 def transmission_post(conn, headers={}):
 
@@ -104,3 +104,5 @@ if __name__ == '__main__':
 				print(COLOR1 + '${font mono:size=10}${alignc}Transmission${font}\n')
 				print_header = True
 			print_torrent(t)
+	else:
+		print(COLOR2 + "${alignc}No active torrents")
