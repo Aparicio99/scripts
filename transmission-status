@@ -84,7 +84,6 @@ def print_torrent(t):
 
 	print('%s%s\n%s%d%% %sUp %s%s %sDown %s%s %s\n' % (COLOR1, name, COLOR2, progress, COLOR1, COLOR2, upload, COLOR1, COLOR2, download, eta))
 
-
 if __name__ == '__main__':
 
 	if len(sys.argv) != 2:
@@ -95,14 +94,10 @@ if __name__ == '__main__':
 
 	torrents = transmission_list(host)
 
-	print_header = False
-
-	for id in torrents:
-		t = torrents[id]
-		if t['status'] != 0:
-			if not print_header:
-				print(COLOR1 + '${font mono:size=10}${alignc}Transmission${font}\n')
-				print_header = True
-			print_torrent(t)
-	else:
+	if len(torrents) == 0:
 		print(COLOR2 + "${alignc}No active torrents")
+	else:
+		for id in torrents:
+			t = torrents[id]
+			if t['status'] != 0:
+				print_torrent(t)
