@@ -1,0 +1,25 @@
+#!/bin/sh
+
+[[ ! $1 ]] && exit
+
+if [[ $2 ]]; then
+
+	output=$(dec $1 | awk '/'$2'/{printf $NF}')
+
+	if [[ "$output" != "" ]]; then
+
+		echo -n $output | xclip -loops 8 -selection primary -i
+		(
+			sleep 5
+			echo -n | xclip -selection primary -i
+			notify-send --expire-time=2000 "Clipboard" "X11 selection cleared"
+		) &
+
+
+		echo "Copied to X11 selection for one time use."
+	else
+		echo "No match found."
+	fi
+else
+	dec $1
+fi

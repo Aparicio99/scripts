@@ -10,14 +10,9 @@
 * **doat** (sh)				Emulates the *at* command without daemon
 * **enc** (sh)				Encrypt and decrypt files with openssl
 * **extract** (sh)			Exctract multiple archive formats
-* **gentoo**-info (sh)			Shows a gentoo banner and system information
 * **history_stat** (awk)		ZSH command history statistics
-* **lastpackage** (sh)			Last installed package (Gentoo)
-* **lastsync** (sh)			Last portage sync (Gentoo)
-* **lastupdate** (awk)			Last world update (Gentoo)
 * **length** (awk)			Show Audio/Video play time
 * **luakit_bookmarks** (sh)		Luakit bookmarks dmenu loader
-* **mergetime** (awk)			Merge time statistics for all packages (Gentoo)
 * **meteo** (python3)			Weather info
 * **mouse** (awk)			Control mouse power and autosuspend
 * **mpc_time** (awk)			Get current playlist total time
