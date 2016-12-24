@@ -1,35 +1,36 @@
-#!/bin/sh
-TIME=5
-[[ $1 ]] && TIME=$1
+#!/usr/bin/awk -f
 
-BAT="/sys/class/power_supply/BAT0"
-FILE_NOW="$BAT/charge_now"
-read FULL < $BAT/charge_full
-read DESIGN < $BAT/charge_full_design
+function readval(file) {
+	getline line < (path file)
+	return line
+}
 
-echo "Total capacity: $FULL($DESIGN) µAh"
+BEGIN {
+	path = "/sys/class/power_supply/BAT0/"
 
-read NOW < $FILE_NOW
-echo "Charge t1: $NOW µAh"
+	status        = readval("status")
+	capacity      = readval("capacity")
+	charge_now    = readval("charge_now") / 1000
+	charge_full   = readval("charge_full") / 1000
+	current_now   = readval("current_now") / 1000
+	voltage_now   = readval("voltage_now") / 1000000
 
-echo "Waiting $TIME seconds"
-sleep $TIME
+	power_usage   = (current_now / 1000) * voltage_now
 
-read NOW2 < $FILE_NOW
-echo "Charge t2: $NOW2 µAh"
+	printf "Status: %s\n", status
+	printf "Charge: %d% (%d/%d mAh)\n", capacity, charge_now, charge_full
+	printf "Current: %d mA @ %.3f V\n", current_now, voltage_now
+	printf "Power usage: %.2f Wh\n", power_usage
 
-DIFF=$((NOW-NOW2))
-VEL=$((DIFF/$TIME))
+	if (status == "Discharging")
+		time_left    = charge_now / current_now
 
-echo "Diff in $TIME seconds: $DIFF µAh"
+	else if (status == "Charging")
+		time_left    = (charge_full - charge_now) / current_now
 
-if (( VEL == 0  )); then
-	echo "Battery charged"
+	hours_left   = int(time_left)
+	minutes_left = int((time_left - hours_left) * 60)
+	printf "Time left: %dh%02dm\n", hours_left, minutes_left
 
-elif (( VEL < 0 )); then
-	echo "Charging velocity: $((VEL * -1)) µAh/s"
-	echo "ETA: $(( (NOW2 - FULL)/(VEL * 1)/60 )) minutes"
-else
-	echo "Discharging velocity: $VEL µAh/s"
-	echo "ETA: $((NOW2/VEL/60)) minutes"
-fi
+
+}
