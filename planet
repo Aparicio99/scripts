@@ -1,25 +1,43 @@
 #!/bin/sh
 
+DEFAULT="-range 10 -radius 40 -label -labelpos -15+28 -wait 60
+        -north orbit -lat 25 -lon -9 -geometry 1920x1080 -color 0xff8c00"
+
 WINDOW="-window -geometry 1720x1080"
 
-NORMAL="-range 10 -radius 40 -label -labelpos -15+28 -wait 60
-        -north orbit -lat 25 -lon -9 -geometry 1920x1080 -color 0xff8c00"
+SCREENSAVER="-vroot"
 
 cd $HOME/.xplanet
 
+run() {
+	xplanet -config config $*
+}
+
 case  $1 in
+
 	update)
 		wget -O new.tle http://www.celestrak.com/NORAD/elements/tle-new.txt
 		wget -O stations.tle http://www.celestrak.com/NORAD/elements/stations.txt
-		exit 0 ;;
+		;;
+
 	clouds)
 		./download_clouds.py
-		exit 0 ;;
-	wall)
-		OPTS="$NORMAL" ;;
-	*)
-		OPTS="$NORMAL $WINDOW" ;;
-esac
+		;;
 
-pkill xplanet
-xplanet -config config $OPTS &
+	wall)
+		pkill xplanet
+		run "$DEFAULT" &
+		;;
+
+	# This is to be run from xscreensaver, by editing a preset (like GLPlanet)
+	# a set the command line to "planet screensaver"
+	screensaver)
+		run "$DEFAULT $SCREENSAVER"
+		;;
+
+	*)
+		pkill xplanet
+		run "$DEFAULT $WINDOW" &
+		;;
+
+esac
