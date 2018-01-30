@@ -52,23 +52,30 @@ BEGIN {
 
 	print ""
 
-	getline < "/sys/block/sda/stat"
-	read_sda = $3 * 512
-	write_sda = $7 * 512
+	while (getline < "/proc/diskstats") {
+		if ($3 ~ /sd.$/) {
+			read_sda = $6 * 512
+			write_sda = $10 * 512
+		}
+	}
 
 	printf " %20s %15d     %s (%s/s)\n", "Read", read_sda, si(read_sda, "iB"), si(read_sda/uptime, "iB")
 	printf " %20s %15d     %s (%s/s)\n", "Write", write_sda, si(write_sda, "iB"), si(write_sda/uptime, "iB")
 
 	print ""
 
-	getline rx_bytes_wlan0 < "/sys/class/net/wlan0/statistics/rx_bytes"
-	getline tx_bytes_wlan0 < "/sys/class/net/wlan0/statistics/tx_bytes"
-	getline rx_bytes_eth0 < "/sys/class/net/lan0/statistics/rx_bytes"
-	getline tx_bytes_eth0 < "/sys/class/net/lan0/statistics/tx_bytes"
-	rx_bytes = rx_bytes_wlan0 + rx_bytes_eth0
-	tx_bytes = tx_bytes_wlan0 + tx_bytes_eth0
+	while ("ip address show" | getline) {
+		if (/inet.*global/)
+			interfaces[$NF] = 1
+	}
+
+	for (dev in interfaces) {
+		getline rx_bytes_dev < ("/sys/class/net/"dev"/statistics/rx_bytes")
+		getline tx_bytes_dev < ("/sys/class/net/"dev"/statistics/tx_bytes")
+		rx_bytes += rx_bytes_dev
+		tx_bytes += tx_bytes_dev
+	}
 
 	printf " %20s %15d     %s (%s/s)\n", "Received", rx_bytes, si(rx_bytes, "iB"), si(rx_bytes/uptime, "iB")
 	printf " %20s %15d     %s (%s/s)\n", "Transmitted", tx_bytes, si(tx_bytes, "iB"), si(tx_bytes/uptime, "iB")
-
 }
