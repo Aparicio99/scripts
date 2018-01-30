@@ -1,7 +1,7 @@
 #!/usr/bin/awk -f
 
 BEGIN {
-	file = ENVIRON["HOME"]"/todo.txt"
+	file = ENVIRON["HOME"]"/.todo.txt"
 
 	while (getline < file) {
 		data[++n] = $0
