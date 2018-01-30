@@ -36,6 +36,11 @@ case "$1" in
 		sleep 0.01
 		echo 300 > $auto
 		;;
+
+	"fix_perm")
+		chown :usb $control $auto
+		chmod g+w $control $auto
+		;;
 	*)
 		echo "Usage: mouse [auto|on|off]"
 esac
