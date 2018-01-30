@@ -1,8 +1,9 @@
 #!/bin/sh
 
 WINDOW="-window -geometry 1720x1080"
-#NORMAL="-range 10 -radius 40 -label -wait 60 -north orbit -lat 25 -lon -9 -geometry 1720x1080 -color green"
-NORMAL="-range 10 -radius 40 -label -wait 60 -north orbit -geometry 1720x1080 -color green"
+
+NORMAL="-range 10 -radius 40 -label -labelpos -15+28 -wait 60
+        -north orbit -lat 25 -lon -9 -geometry 1920x1080 -color 0xff8c00"
 
 cd $HOME/.xplanet
 
