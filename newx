@@ -1,0 +1,13 @@
+#!/bin/sh
+# Launch an application in a new X instance
+
+export DISPLAY=:1
+X :1 -ac -terminate &
+
+sleep 2
+
+if [ $# -eq 0 -a -x /usr/bin/twm ]; then
+	twm
+else
+	$*
+fi

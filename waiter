@@ -1,0 +1,36 @@
+#!/bin/bash
+# Show desktop notifications and blink the scroll led
+# when it detects a message received in Telegram
+
+ICON="$HOME/scripts/icon48.png"
+
+function notify() {
+dbus-send --type=method_call --dest='org.freedesktop.Notifications' \
+	/org/freedesktop/Notifications org.freedesktop.Notifications.Notify \
+	string:'skype' \
+	uint32:58 \
+	string:"$1" \
+	string:"$2" \
+	string:"$3" \
+	array:string:'' \
+	dict:string:byte:'urgency',1 \
+	uint32:3000
+}
+
+while :; do
+
+	sleep 1
+
+	output=$(xdotool search --all --name "^Telegram ")
+	[[ $? != 0 ]] && continue
+
+	xdotool search --class "Telegram" | grep "$output" >/dev/null
+	[[ $? != 0 ]] && continue
+
+	notify "$ICON" "Telegram" "Message received "
+	$HOME/scripts/scroll_led blink
+
+	xdotool search --sync --name "^Telegram$" >/dev/null
+
+	$HOME/scripts/scroll_led off
+done

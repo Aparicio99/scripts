@@ -1,0 +1,3 @@
+#!/bin/sh
+# Replace strings on the X selection
+xclip -selection primary -o | sed "$@" | xclip -selection primary -i

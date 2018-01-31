@@ -1,0 +1,20 @@
+#!/usr/bin/awk -f
+
+# Shows the number of movies seen for each year of release
+# Excepts a file with one movie per line with the following format:
+#  title (year)
+
+$1 && $1 != "//" {
+	year = substr($NF, 2, length($NF)-2);
+	y[year]++;
+}
+
+END {
+	for (year in y)
+		print year, y[year] |& "sort"
+
+	close("sort", "to")
+
+	while ("sort" |& getline)
+		print
+}

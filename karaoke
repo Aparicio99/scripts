@@ -1,0 +1,92 @@
+#!/usr/bin/gawk -f
+# Shows lyrics for the current mpd playing song
+# Only shows some lines at a time, trying to show
+# the part currently playing. Made for use in conky.
+
+@load "filefuncs" # stat function
+
+function download(artist, title, file) {
+
+	"perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' '" artist "'" | getline artist_escaped
+	"perl -MURI::Escape -e 'print uri_escape($ARGV[0]);' '" title "'"  | getline title_escaped
+
+	print artist_escaped, title_escaped
+
+	while ("curl -s 'http://makeitpersonal.co/lyrics?artist=" artist_escaped "&title=" title_escaped "'" | getline) {
+		if ($0 == "Sorry, We don't have lyrics for this song yet.") {
+			print "Unavailable lyrics" > file
+			break
+		}
+		print > file
+	}
+}
+
+BEGIN {
+
+	if (ARGV[1] == "debug")
+		DEBUG = 1
+	else
+		DEBUG = 0
+
+	while ("mpc --format 'track;%artist%;%title%'" | getline) {
+
+		if (/^\[.*\]/) {
+			match($0, "\\((..?)%\\)", a)
+			progress = a[1] # Percentage value
+
+		} else if (/^track;/) {
+			split($0, a, ";")
+			song_artist = a[2]
+			song_title =  a[3]
+		}
+	}
+
+	lyrics_file = ENVIRON["HOME"] "/.lyrics/" song_artist "-" song_title ".txt"
+
+	if (stat(lyrics_file, _) < 0)
+		download(song_artist, song_title, lyrics_file)
+
+
+	total_lines = 0
+	while (getline < lyrics_file) {
+		lines[total_lines++] = $0
+	}
+
+	current_line_guess = int(total_lines * progress / 100)
+
+	LINES_BEFORE = 5
+	LINES_AFTER = 5
+	VISIBLE_LINES = LINES_BEFORE + LINES_AFTER
+
+	if ( current_line_guess <= LINES_BEFORE ) {
+		if (DEBUG)
+			print "Begin"
+		start = 0
+		end = VISIBLE_LINES
+
+	} else if (current_line_guess >= total_lines - LINES_AFTER) {
+		if (DEBUG)
+			print "End"
+		start = total_lines - VISIBLE_LINES
+		end = total_lines
+
+	} else {
+		if (DEBUG)
+			print "Middle"
+		start = current_line_guess - LINES_BEFORE
+		end = current_line_guess + LINES_AFTER
+	}
+
+	if (DEBUG) {
+		print "Printing " start " to " end
+		print "Progress: " progress "%, line " current_line_guess
+		print "--------------------------------"
+		for (i = start; i <= end; i++)
+			printf "%2d  %s\n",  i, lines[i]
+		print "--------------------------------"
+
+	} else {
+		for (i = start; i <= end; i++)
+			print lines[i]
+	}
+}

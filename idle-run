@@ -1,0 +1,32 @@
+#!/bin/bash
+# Run commands when X is idle for some time
+
+IDLE_TIMEOUT=60
+CMD="$@"
+
+function wait_for_idle() {
+	while [ $(xprintidle) -le $(( IDLE_TIMEOUT * 1000 )) ]; do
+		sleep 1
+	done
+}
+
+function wait_for_active() {
+	while [ $(xprintidle) -ge 1000 ]; do
+		sleep 1
+	done
+}
+
+while :; do
+
+	wait_for_idle
+
+	echo "Running program"
+	$CMD &
+	PID=$!
+
+	wait_for_active
+
+	echo "Killing program"
+	kill $PID
+
+done
