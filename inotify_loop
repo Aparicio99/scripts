@@ -1,0 +1,57 @@
+#!/bin/sh
+# Runs a command when a file or files in directory are modified
+
+path="$1"
+prog="$2"
+
+if [ -d "$path" ]; then
+	IS_DIR=1
+else
+	IS_DIR=0
+fi
+
+# If the command is not specified, try to guess it
+if [ -z "$prog" ]; then
+
+	if [ "$IS_DIR" = 1 ]; then
+
+		if [ -f Makefile ]; then
+			prog="make"
+		fi
+
+	else
+
+		case $path in
+			*.tex)
+				prog="pdflatex -halt-on-error" ;;
+		esac
+
+	fi
+fi
+
+if [ -z "$prog" ]; then
+	echo "Don't know what command to run"
+	exit
+fi
+
+while :; do
+
+	file=$(inotifywait -q -e create -e modify $path | awk '{print $3}')
+
+	if [ "$IS_DIR" = 1 ]; then
+
+		if [ -f $file ]; then
+			echo "Running $prog"
+			$prog
+		fi
+
+	else
+		# Wait for the file to be available
+		while [ ! -f $path ]; do
+			:
+		done
+
+		echo "Running $prog $path"
+		$prog $path
+	fi
+done

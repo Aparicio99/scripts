@@ -1,0 +1,2 @@
+#!/bin/bash
+echo "@PJL RDYMSG DISPLAY=\"$@\"" | nc -q 0 rainbow 9100 2>/dev/null
