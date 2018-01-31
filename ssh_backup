@@ -1,0 +1,23 @@
+#!/bin/sh
+
+args=( $SSH_ORIGINAL_COMMAND )
+prog=${args[0]}
+
+case $1 in
+
+	scp)
+		flag=${args[1]}
+		path=${args[2]}
+
+		[ "$prog" != "scp" ] && exit 1
+
+		[ "$flag" != "-t" ] && exit 2
+
+		scp -t $path
+		;;
+
+	rsync)
+		[ "$prog" != "rsync" ] && exit 3
+		[ "$prog" != "ln" ] && exit 3
+		;;
+esac
