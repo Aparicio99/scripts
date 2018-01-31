@@ -1,17 +1,66 @@
 #!/bin/sh
-HOST=$(hostname)
-DIRS="/home/aparicio"
-[[ $USER == root ]] && DIRS="$DIRS /etc /var"
 
-BACKUP_DIR="/mnt/externo1/backups"
-NEW="$HOST.$(date +%Y.%m.%d.%H.%M.%S)"
+source ~/.backups
 
-echo "Backup $DIRS to $BACKUP_DIR/$NEW"
-rsync --archive --one-file-system --hard-links --human-readable  \
-	--numeric-ids --delete --delete-excluded --progress --compress \
-	--exclude-from=/home/aparicio/.rsync_exclude.txt \
-	--include-from=/home/aparicio/.rsync_include.txt \
-	--link-dest=../$HOST.last \
-	$DIRS $BACKUP_DIR/$NEW
+mktimestamp() {
+	date "+%Y-%m-%d-%H-%M"
+}
 
-ln -sfn $BACKUP_DIR/$NEW $BACKUP_DIR/$HOST.last
+tar_name() {
+	echo "${1}-$(mktimestamp).tar.xz"
+}
+
+mktar() {
+	local full_path=$1
+	local top_dir=$(basename $full_path)
+	local file=$(tar_name $top_dir)
+
+	tar caf $file $full_path
+	echo $file
+}
+
+full_rsync() {
+	local local_host=$(hostname)
+	local backup_location=$FULL_BACKUP_LOCATION
+
+	local dirs="$FULL_BACKUP_DIRS"
+
+	local new="$local_host.$(date +%Y.%m.%d.%H.%M.%S)"
+
+	echo "Backing up $dirs to ${backup_location}/${new}..."
+
+	rsync --archive --one-file-system --human-readable --progress \
+	      --numeric-ids --delete --delete-excluded \
+	      --hard-links --links --safe-links \
+	      --exclude-from=$RSYNC_EXCLUDE \
+	      --include-from=$RSYNC_INCLUDE \
+	      --link-dest=../${local_host}.last \
+	      ${dirs} ${backup_location}/${new}
+
+	local host=${backup_location%:*}
+	local dir=${backup_location#*:}
+
+	ssh $host ln -sfn ${dir}/${new} ${dir}/${local_host}.last
+}
+
+case $1 in
+
+	rsync)
+		full_rsync
+		;;
+	tar)
+		for dir in "${TAR_DIRECTORIES[@]}"; do
+
+			echo "Backing up $dir to ${TAR_BACKUP_LOCATION}..."
+
+			file=$(mktar $dir)
+			scp $file $TAR_BACKUP_LOCATION
+			rm -f $file
+		done
+		;;
+
+	*)
+		echo "Wat?"
+		;;
+esac
+
