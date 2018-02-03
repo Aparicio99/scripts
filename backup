@@ -1,6 +1,6 @@
 #!/bin/sh
 
-source ~/.backups
+source $HOME/.backups
 
 mktimestamp() {
 	date "+%Y-%m-%d-%H-%M"
