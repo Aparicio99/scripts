@@ -13,17 +13,17 @@ tar_name() {
 mktar() {
 	local full_path=$1
 	local top_dir=$(basename $full_path)
-	local file=$(tar_name $top_dir)
+	local file="/tmp/$(tar_name $top_dir)"
 
 	tar caf $file $full_path
 	echo $file
 }
 
-full_rsync() {
+rsync_backup() {
 	local local_host=$(hostname)
-	local backup_location=$FULL_BACKUP_LOCATION
+	local backup_location=$RSYNC_BACKUP_DEST
 
-	local dirs="$FULL_BACKUP_DIRS"
+	local dirs="$RSYNC_BACKUP_DIRS"
 
 	local new="$local_host.$(date +%Y.%m.%d.%H.%M.%S)"
 
@@ -43,24 +43,51 @@ full_rsync() {
 	ssh $host ln -sfn ${dir}/${new} ${dir}/${local_host}.last
 }
 
-case $1 in
+scp_backup() {
+	for dir in "${TAR_BACKUP_DIRS[@]}"; do
 
-	rsync)
-		full_rsync
-		;;
-	tar)
-		for dir in "${TAR_DIRECTORIES[@]}"; do
+		echo "Backing up $dir to ${TAR_BACKUP_DEST}..."
 
-			echo "Backing up $dir to ${TAR_BACKUP_LOCATION}..."
+		file=$(mktar $dir)
+		scp $file $TAR_BACKUP_DEST
+		rm -f $file
+	done
+}
 
-			file=$(mktar $dir)
-			scp $file $TAR_BACKUP_LOCATION
-			rm -f $file
-		done
-		;;
+email_backup() {
+	local files=""
+	local dirs="${EMAIL_BACKUP_DIRS[@]}"
 
-	*)
-		echo "Wat?"
-		;;
-esac
+	for dir in $dirs; do
+		file=$(mktar $dir)
+		files="${files} $file"
+	done
+
+	echo "Backing up $dirs to ${EMAIL_BACKUP_DEST}..."
+	if which mutt >/dev/null; then
+		echo "Backup of $dirs" | mutt -s "Backup for $(hostname)" $EMAIL_BACKUP_DEST -a $files
+	else
+		echo "Mutt is not installed, backup failed."
+	fi
+	rm -f $files
+}
+
+for backup in $*; do
+
+	case $backup in
+
+		rsync)
+			rsync_backup
+			;;
+		scp)
+			scp_backup
+			;;
+		email)
+			email_backup
+			;;
+		*)
+			echo "Backup wat?"
+			;;
+	esac
+done
 

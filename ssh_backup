@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 args=( $SSH_ORIGINAL_COMMAND )
 prog=${args[0]}
