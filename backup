@@ -35,12 +35,12 @@ rsync_backup() {
 	      --exclude-from=$RSYNC_EXCLUDE \
 	      --include-from=$RSYNC_INCLUDE \
 	      --link-dest=../${local_host}.last \
-	      ${dirs} ${backup_location}/${new}
+	      ${dirs} ${backup_location}${new}
 
 	local host=${backup_location%:*}
 	local dir=${backup_location#*:}
 
-	ssh $host ln -sfn ${dir}/${new} ${dir}/${local_host}.last
+	ssh $host ln -sfn ${dir}${new} ${dir}${local_host}.last
 }
 
 scp_backup() {
