@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 args=( $SSH_ORIGINAL_COMMAND )
 prog=${args[0]}
@@ -21,4 +21,5 @@ case $1 in
 
 		$SSH_ORIGINAL_COMMAND
 		;;
+
 esac

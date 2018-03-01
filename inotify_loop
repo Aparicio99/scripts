@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 # Runs a command when a file or files in directory are modified
 
 path="$1"
-prog="$2"
+shift
+prog="$@"
 
 if [ -d "$path" ]; then
 	IS_DIR=1
@@ -40,9 +41,10 @@ while :; do
 
 	if [ "$IS_DIR" = 1 ]; then
 
-		if [ -f $file ]; then
-			echo "Running $prog"
-			$prog
+		if [ -f $path/$file ]; then
+			echo "Running $prog" >&2
+			# Eval is neeed to process shell file redirections
+			eval $prog
 		fi
 
 	else
@@ -51,7 +53,7 @@ while :; do
 			:
 		done
 
-		echo "Running $prog $path"
-		$prog $path
+		echo "Running $prog $path" >&2
+		eval $prog $path
 	fi
 done
