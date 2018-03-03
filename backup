@@ -6,16 +6,13 @@ mktimestamp() {
 	date "+%Y-%m-%d-%H-%M"
 }
 
-tar_name() {
-	echo "${1}-$(mktimestamp).tar.xz"
-}
-
 mktar() {
-	local full_path=$1
+	local full_path="$1"
+	local extra_name="$2"
 	local top_dir=$(basename $full_path)
-	local file="/tmp/$(tar_name $top_dir)"
+	local file="/tmp/${top_dir}${extra_name}.tar.xz"
 
-	tar caf $file $full_path
+	tar caf $file $full_path 2>/dev/null
 	echo $file
 }
 
@@ -59,7 +56,7 @@ email_backup() {
 	local dirs="${EMAIL_BACKUP_DIRS[@]}"
 
 	for dir in $dirs; do
-		file=$(mktar $dir)
+		file=$(mktar $dir -$(mktimestamp))
 		files="${files} $file"
 	done
 
