@@ -20,7 +20,7 @@ BEGIN {
 	printf "Status: %s\n", status
 	printf "Charge: %d% (%d/%d mAh)\n", capacity, charge_now, charge_full
 	printf "Current: %d mA @ %.3f V\n", current_now, voltage_now
-	printf "Power usage: %.2f Wh\n", power_usage
+	printf "Power usage: %.2f W\n", power_usage
 
 	if (status == "Discharging")
 		time_left    = charge_now / current_now
