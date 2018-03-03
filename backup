@@ -15,7 +15,7 @@ mktar() {
 	local top_dir=$(basename $full_path)
 	local file="/tmp/$(tar_name $top_dir)"
 
-	tar caf $file $full_path
+	tar caf $file $full_path 2>/dev/null
 	echo $file
 }
 
