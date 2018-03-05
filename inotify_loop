@@ -37,12 +37,20 @@ fi
 
 while :; do
 
-	file=$(inotifywait -q -e create -e modify $path | awk '{print $3}')
+	read directory operation file < <(inotifywait --quiet --recursive -e create -e modify $path)
 
 	if [ "$IS_DIR" = 1 ]; then
 
-		if [ -f $path/$file ]; then
-			echo "Running $prog" >&2
+		if [[ "$file" =~ ^[0-9]{4}$ ]]; then
+			echo "Skipping '$file' (vim temp)"
+
+		else
+			echo "Waiting for '$file' to be available"
+			while [ ! -f $directory/$file ]; do
+				:
+			done
+
+			echo "Running '$prog'" >&2
 			# Eval is neeed to process shell file redirections
 			eval $prog
 		fi
