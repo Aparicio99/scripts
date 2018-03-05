@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+# Opens an URL in a new firefox instance, and opens
+# again in the same tab if already running
+
+import os, sys, socket, subprocess, json, time, configparser, re
+
+HOST = "127.0.0.1"
+PORT = 2828
+PROFILE = "marionette"
+PROFILES_INI = os.path.expanduser("~") + "/.mozilla/firefox/profiles.ini"
+
+# Minimal protocol implemented here because
+# marionette_driver is still not availabe for python 3
+class Marionette:
+
+    def __init__(self, host, port):
+        self.c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.c.settimeout(1)
+        self.host = host
+        self.port = port
+
+    def connect_wait(self):
+        while not self.connect():
+            time.sleep(0.5)
+        return True
+
+    def connect(self):
+        try:
+            self.c.connect((self.host, self.port))
+        except Exception as e:
+            return False
+
+        hello = self.recv()
+        print("Server hello: " + str(hello))
+
+        if not (hello and "applicationType" in hello):
+            self.panic("Unexpected server hello")
+
+        self.msgID = 1
+        self.do("newSession", {})
+        return True
+
+    def panic(self, msg):
+        print("Error: " + str(msg))
+        sys.exit(1)
+
+    def recv(self):
+        try:
+            msg = self.c.recv(1024).decode('utf-8')
+            json_index = msg.find(":") + 1
+            json_data = msg[json_index:]
+            return json.loads(json_data)
+        except:
+            return None
+
+    def send(self, data):
+        json_data = json.dumps(data)
+        msg = str(len(json_data)) + ":" + json_data
+        self.c.send(msg.encode())
+
+    def close(self):
+        self.c.close()
+
+    def do(self, cmd, params):
+        self.send([0, self.msgID, cmd, params])
+        self.msgID += 1
+        return self.recv()
+
+    def get(self, url):
+        return self.do("get", {"url": url})
+
+
+def firefoxProfilePresent(name):
+    config = configparser.ConfigParser()
+    config.read(PROFILES_INI)
+
+    for section in config.sections():
+        if "name" in config[section] and config[section]["name"] == name:
+            return True
+
+    return False
+
+if __name__ == "__main__":
+
+    browser = Marionette(HOST, PORT)
+
+    if not browser.connect():
+        print("Marionette server not running, launching firefox...")
+
+        if not firefoxProfilePresent(PROFILE):
+            subprocess.call(["firefox", "--no-remote", "--CreateProfile", PROFILE])
+
+        subprocess.Popen(["firefox", "--no-remote", "--marionette", "-p", PROFILE])
+
+        browser.connect_wait()
+
+    if len(sys.argv) > 1:
+        url = sys.argv[1]
+
+        if not re.match("https?://", url):
+            if os.path.isfile(url):
+                url = "file://" + os.path.abspath(url)
+            else:
+                url = "http://" + url
+
+        resp = browser.get(url)
+        if resp[2]:
+            print(resp[2])
+
+    browser.close()
