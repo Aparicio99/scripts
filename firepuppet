@@ -2,7 +2,7 @@
 # Opens an URL in a new firefox instance, and opens
 # again in the same tab if already running
 
-import os, sys, socket, subprocess, json, time, configparser, re
+import os, sys, socket, subprocess, json, time, configparser, re, argparse
 
 HOST = "127.0.0.1"
 PORT = 2828
@@ -69,6 +69,18 @@ class Marionette:
     def get(self, url):
         return self.do("get", {"url": url})
 
+    # This bypasses the cache, causing the page to move to the top
+    def reload(self):
+        return self.do("refresh", {})
+
+    # This acts like the browser refresh button, maintaing page position
+    def refresh(self):
+        return self.do("executeScript", {"script": "location.reload()"})
+
+    def getCurrentUrl(self):
+        resp = self.do("getCurrentUrl", {})
+        if resp and "value" in resp[3]:
+            return resp[3]["value"]
 
 def firefoxProfilePresent(name):
     config = configparser.ConfigParser()
@@ -82,6 +94,17 @@ def firefoxProfilePresent(name):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description='Launch and interact with Firefox instance.')
+
+    parser.add_argument("--refresh", action="store_true",
+                        help="Refresh the current page.")
+
+    parser.add_argument("--norefresh", action="store_true",
+                        help="Do not refresh even if it has the same URL opened.")
+
+    parser.add_argument("url", nargs="?", default="", help="URL to open.")
+    args = parser.parse_args()
+
     browser = Marionette(HOST, PORT)
 
     if not browser.connect():
@@ -94,8 +117,12 @@ if __name__ == "__main__":
 
         browser.connect_wait()
 
-    if len(sys.argv) > 1:
-        url = sys.argv[1]
+    if args.refresh:
+            browser.refresh()
+
+    elif args.url:
+        url = args.url
+        current_url = browser.getCurrentUrl()
 
         if not re.match("https?://", url):
             if os.path.isfile(url):
@@ -103,8 +130,13 @@ if __name__ == "__main__":
             else:
                 url = "http://" + url
 
-        resp = browser.get(url)
-        if resp[2]:
-            print(resp[2])
+        if url != current_url or args.norefresh:
+            print("Opening URL.")
+            resp = browser.get(url)
+            if resp[2]:
+                print(resp[2]['message'])
+        else:
+            print("Refreshing page.")
+            browser.refresh()
 
     browser.close()
