@@ -1,0 +1,85 @@
+#!/bin/bash
+# Script to automate cleaning and archiving of old work directories with lots of files
+
+CMD="tar --create --xz --remove-files --file"
+EXT="tar.xz"
+
+INTERMEDIATE='find . -regex .*\.\(o\|ps\|out\)$'
+REDUNDANT='find . -name .git -o -name *.tar.* -o -name *.zip'
+
+COLOR1="\033[1;36m" # Cyan
+COLOR2="\033[0;31m" # Red
+RESET="\033[0m"
+
+function header() {
+	echo -e "${COLOR1} >>> $1${RESET}"
+}
+
+function info() {
+	echo -e "${COLOR2} >>> $1${RESET}"
+}
+
+function check() {
+	header "Searching for duplicate files..."
+	fdupes --recurse --noempty .
+
+	header "Searching for Makefiles..."
+	find . -name Makefile
+
+	header "Searching for intermediate files..."
+	$INTERMEDIATE
+
+	header "Searching for redundant files..."
+	$REDUNDANT
+}
+
+function clean() {
+	header "Running make clean on existing Makefiles"
+	find . -name Makefile | while read f; do
+		info "Running make clean"
+		make --directory $(dirname $f) clean
+	done
+
+	header "Deleting intermediate files..."
+	$INTERMEDIATE -delete
+}
+
+function compress() {
+
+	if [[ $# == 1 ]]; then
+		${CMD} ${1}.${EXT} $1
+	else
+		target=$1
+		shift
+		${CMD} ${target}.${EXT} $*
+	fi
+
+}
+
+if [[ $# < 1 ]]; then
+	exe=$(basename $0)
+	echo "Usage: $exe <dir/file>"
+	echo "       $exe <file1> <file2> ..."
+	exit
+fi
+
+while :; do
+	case $1 in
+		--check)
+			check
+			exit
+			;;
+		--clean)
+			clean
+			exit
+			;;
+		--*)
+			echo "Unknown option '$1'"
+			exit
+			;;
+		*)
+			compress "$@"
+			break
+	esac
+	shift
+done
