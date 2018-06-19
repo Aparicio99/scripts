@@ -1,7 +1,7 @@
 #!/bin/sh
 cd /mnt/extra/Steam
 LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib32/opengl/nvidia/lib:/usr/lib64/opengl/nvidia/lib" \
-	force_s3tc_enable=true
+	force_s3tc_enable=true \
 	__GLVND_DISALLOW_PATCHING=1 \
 	SDL_AUDIODRIVER=alsa \
 	dbus-run-session ./steam.sh
