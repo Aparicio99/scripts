@@ -1,20 +1,20 @@
-#!/usr/bin/awk -f
+#!/usr/bin/gawk -f
 
 # Shows the number of movies seen for each year of release
-# Excepts a file with one movie per line with the following format:
-#  title (year)
+# Accepts a file with one movie per line with the following format:
+# title (year)
 
 $1 && $1 != "//" {
-	year = substr($NF, 2, length($NF)-2);
-	y[year]++;
+	match($NF, "\\(([0-9]+)\\)", a)
+	year = a[1]
+	if (year)
+		y[year]++;
+	else
+		print "##### Year missing ##### " $0
 }
 
 END {
+	PROCINFO["sorted_in"] = "@ind_num_asc"
 	for (year in y)
-		print year, y[year] |& "sort"
-
-	close("sort", "to")
-
-	while ("sort" |& getline)
-		print
+		print year, y[year]
 }
