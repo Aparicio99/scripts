@@ -3,18 +3,18 @@ DIR="${HOME}/imagens/screenshots"
 NAME="$DIR/$(date +%Y-%m-%d-%H-%M-%S).png"
 
 if [ ! -d "${DIR}" ]; then
-	mkdir "${DIR}"
+	mkdir -p "${DIR}"
 fi
 
-if [ "$1" = "scr" ]; then
-	scrot "${NAME}"
-elif [ "$1" = "area" ]; then
-	scrot -s "${NAME}"
-fi
+case $1 in
+	scr*)  scrot    "${NAME}" ;;
+	area) scrot -s "${NAME}" ;;
+	win*)  scrot -u "${NAME}" ;;
+	*)
+		echo "Usage: screenshot [scr|area|win]"
+		exit
+		;;
+esac
 
-if [[ $# = 0 ]]; then
-	echo "Usage: screenshot [scr|area]"
-else
-	notify-send "Screenshot taken!" $NAME
-	ln -sf "${NAME}" "${DIR}/last.png"
-fi
+notify-send "Screenshot taken!" $NAME
+ln -sf "${NAME}" "${DIR}/last.png"
