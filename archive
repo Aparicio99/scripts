@@ -1,85 +1,274 @@
 #!/bin/bash
 # Script to automate cleaning and archiving of old work directories with lots of files
 
-CMD="tar --create --xz --remove-files --file"
+COMPRESS="tar --create --xz --remove-files --file"
 EXT="tar.xz"
 
-INTERMEDIATE='find . -regex .*\.\(o\|ps\|out\)$'
-REDUNDANT='find . -name .git -o -name *.tar.* -o -name *.zip'
+INTERMEDIATE_EXT=( o ps out )
+   REDUNDANT_EXT=( git tar.gz tar.bz2 zip )
+     SOURCES_EXT=( doc docx xls xlsx ppt pptx odt ods odp )
 
-COLOR1="\033[1;36m" # Cyan
-COLOR2="\033[0;31m" # Red
-RESET="\033[0m"
+    RED="\033[0;31m"
+  GREEN="\033[0;32m"
+ YELLOW="\033[0;33m"
+MAGENTA="\033[0;35m"
+   CYAN="\033[0;36m"
+   BOLD="\033[1m"
+  RESET="\033[0m"
+
+# Disables pathname expansion, so that we can run commands like find -name *.ext
+# without expanding to matches in the local directory
+set -f
 
 function header() {
-	echo -e "${COLOR1} >>> $1${RESET}"
+	echo -e "${CYAN}${BOLD} >>> $@${RESET}"
 }
 
-function info() {
-	echo -e "${COLOR2} >>> $1${RESET}"
+function cmd() {
+	if pretend; then
+		echo -e " Would have run: ${BOLD}$@${RESET}" >&2
+	else
+		$@
+	fi
 }
 
-function check() {
-	header "Searching for duplicate files..."
-	fdupes --recurse --noempty .
-
-	header "Searching for Makefiles..."
-	find . -name Makefile
-
-	header "Searching for intermediate files..."
-	$INTERMEDIATE
-
-	header "Searching for redundant files..."
-	$REDUNDANT
+function file_match() {
+	local color="$1" file="$2" msg="$3"
+	printf " ${color}%20s  > %s${RESET}\n" "$msg" "$file"
 }
 
-function clean() {
-	header "Running make clean on existing Makefiles"
-	find . -name Makefile | while read f; do
-		info "Running make clean"
-		make --directory $(dirname $f) clean
+function file_delete() {
+	file_match "$RED" "$1" "${@:2}"
+	clean && cmd rm -r "$1" # Use '-r' to be able to remove directories
+}
+
+function file_force() {
+	file_match "$YELLOW" "$1" "${@:2}"
+	clean && force && cmd rm -r "$1"
+}
+
+function file_keep() {
+	file_match "$GREEN" "$1" "${@:2}"
+}
+
+function file_other() {
+	file_match "$MAGENTA" "$1" "${@:2}"
+}
+
+function error() {
+	echo -e "${RED}$@${RESET}"
+}
+
+function find_ext() {
+	local cmd="find . -name *.${1}"
+	for ext in "${@:2}"; do
+		cmd="$cmd -o -name *.${ext}"
 	done
+	echo "$cmd"
+}
 
-	header "Deleting intermediate files..."
-	$INTERMEDIATE -delete
+function intermediate() {
+	header "Searching for intermediate files..."
+
+	$(find_ext ${INTERMEDIATE_EXT[@]}) | while read f; do
+		file_delete "$f"
+	done
+}
+
+function redundant() {
+	header "Searching for redundant files..."
+
+	$(find_ext ${REDUNDANT_EXT[@]}) | while read f; do
+		for ext in ${REDUNDANT_EXT[@]}; do
+
+			local dir="${f%.$ext}"
+
+			if [[ "$f" != "$dir" ]];then
+
+				if [ -d "$dir" ]; then
+					file_delete "$f" "dir found"
+				else
+					file_force "$f" "no dir found"
+				fi
+
+				break
+			fi
+		done
+	done
+}
+
+function office() {
+	header "Searching for office files..."
+
+	if ! type loffice &>/dev/null; then
+		echo "loffice not found. Libreoffice needs to be installed to convert files to pdf."
+		return
+	fi
+
+	$(find_ext ${SOURCES_EXT[@]}) | while read original; do
+		local pdf="${original%.*}.pdf"
+
+		if [[ ! -f "$pdf" ]]; then
+
+			if clean; then
+				cmd loffice --convert-to pdf --outdir "$(dirname "$pdf")" "$original"
+
+				if ! pretend && ! [ -f "$pdf" ]; then
+					error "Could no generate pdf for '$original'"
+					continue
+				fi
+			fi
+			file_force "$original" "generate pdf"
+		else
+			file_force "$original" "pdf found"
+		fi
+	done
+}
+
+function duplicates() {
+	header "Searching for duplicate files (fdupes)..."
+
+	local first=""
+	fdupes --recurse --noempty . | while read -r f; do
+
+		if [[ ! "$f" ]]; then
+			first=""
+			continue
+		fi
+
+		if [[ ! "$first" ]]; then
+			file_keep "$f" "first copy"
+			first="$f"
+		else
+			file_other "$f" "duplicate"
+			clean && cmd ln --force "$first" "$f"
+		fi
+	done
+}
+
+function makefiles() {
+	header "Searching for Makefiles..."
+
+	find . -name Makefile | while read f; do
+		local dir=$(dirname $f)
+		file_other "$f"
+		clean && cmd make --directory "$dir" clean
+	done
+}
+
+function empty() {
+	header "Searching for empty files..."
+
+	find . -empty | while read f; do
+		file_delete "$f"
+	done
+}
+
+function run() {
+	if [[ $# < 1 ]]; then
+		for target in ${TARGETS[@]}; do
+			$target
+		done
+
+	elif [[ "$EXCLUDE" ]]; then
+		for target in ${TARGETS[@]}; do
+			if [[ ! "${@}" =~ $target ]]; then
+				$target
+			fi
+		done
+	else
+		for target in ${@}; do
+			if type -t $target &>/dev/null; then
+				$target
+			else
+				echo "Oops, unknown target '$target'."
+				exit 1
+			fi
+		done
+	fi
 }
 
 function compress() {
-
 	if [[ $# == 1 ]]; then
-		${CMD} ${1}.${EXT} $1
+		${COMPRESS} ${1}.${EXT} $1
 	else
 		target=$1
 		shift
-		${CMD} ${target}.${EXT} $*
+		${COMPRESS} ${target}.${EXT} $@
 	fi
-
 }
 
+function extract() {
+	tar --extract --file "$1" && rm "$1"
+}
+
+function check() { [[ "$CMD" == "check" ]]; }
+function clean() { [[ "$CMD" == "clean" ]]; }
+
+function pretend() { [[ "$PRETEND" == 1 ]]; }
+function exclude() { [[ "$EXCLUDE" == 1 ]]; }
+function   force() { [[ "$FORCE" == 1 ]]; }
+
 if [[ $# < 1 ]]; then
-	exe=$(basename $0)
-	echo "Usage: $exe <dir/file>"
-	echo "       $exe <file1> <file2> ..."
-	exit
+cat<<EOF
+Usage:
+	$(basename $0) [<options>] <action> [<arguments>]
+
+Options:
+	--pretend	Show commands instead of running them
+	--exclude	Targets given are to be treated as an exclusion list
+	--force		Delete also uncertain unedeed files
+
+Actions:
+	check [<targets>]		Show matched files, with no actual deletion or other actions taking place
+	clean [<targets>]		Delete and run other cleaning actions
+	compress <directory>		Compress directory into directory.tar.xz, removing directory
+	compress <name> <files>		Compress given files into name.tar.xz
+	extract <tar file>		Extract given tar file
+
+Targets:
+	makefiles	Run 'make clean' for each Makefile found
+	empty		Delete empty files or directories
+	intermediate	Delete temporary stuff like .o files
+	duplicates	Turn duplicate files into hard links
+	office		Convert office files (like .doc or .xls) into pdf files
+	redundant	Delete archive files (like .zip or .tar.gz) and repositories data (.git)
+
+Output description:
+	Matched files are shown in a color depending on what action will be performed:
+	- $(echo -e   ${GREEN}Kept intact${RESET})
+	- $(echo -e  ${YELLOW}Will only be delete with --force${RESET})
+	- $(echo -e ${MAGENTA}Kept but somewhat changed${RESET})
+	- $(echo -e     ${RED}Always deleted${RESET})
+EOF
+exit
 fi
+
+TARGETS=( makefiles intermediate redundant duplicates office empty )
 
 while :; do
 	case $1 in
-		--check)
-			check
-			exit
-			;;
-		--clean)
-			clean
-			exit
-			;;
-		--*)
-			echo "Unknown option '$1'"
-			exit
-			;;
-		*)
-			compress "$@"
-			break
+		--pretend) PRETEND=1 ;;
+		--exclude) EXCLUDE=1 ;;
+		--force)   FORCE=1 ;;
+
+		--*)       echo "Unknown option '$1'" ;;
+		*)         break
 	esac
 	shift
 done
+
+CMD="$1"
+ARGS="${@:2}"
+
+case $CMD in
+	check)    run $ARGS ;;
+
+	clean)    run $ARGS ;;
+
+	extract)  extract $ARGS ;;
+
+	compress) compress "$@" ;;
+
+	*) echo "Unknown action '$CMD'" ;;
+esac
