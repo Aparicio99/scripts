@@ -4,9 +4,9 @@
 COMPRESS="tar --create --xz --remove-files --file"
 EXT="tar.xz"
 
-INTERMEDIATE_EXT=( o ps out )
-   REDUNDANT_EXT=( git tar.gz tar.bz2 zip )
-     SOURCES_EXT=( doc docx xls xlsx ppt pptx odt ods odp )
+INTERMEDIATE_EXT=( o ps out swp class tmp )
+   REDUNDANT_EXT=( git svn tar.gz tar.bz2 zip )
+     SOURCES_EXT=( doc docx ppt pptx odt odp )
 
     RED="\033[0;31m"
   GREEN="\033[0;32m"
@@ -28,7 +28,7 @@ function cmd() {
 	if pretend; then
 		echo -e " Would have run: ${BOLD}$@${RESET}" >&2
 	else
-		$@
+		"$@"
 	fi
 }
 
@@ -146,13 +146,18 @@ function duplicates() {
 	done
 }
 
-function makefiles() {
-	header "Searching for Makefiles..."
+function builds() {
+	header "Searching for build scripts..."
 
 	find . -name Makefile | while read f; do
 		local dir=$(dirname $f)
-		file_other "$f"
+		file_other "$f" "make clean"
 		clean && cmd make --directory "$dir" clean
+	done
+
+	find . -name build.xml | while read f; do
+		file_other "$f" "ant clean"
+		clean && cmd ant -noinput -buildfile "$f" clean
 	done
 }
 
@@ -227,7 +232,7 @@ Actions:
 	extract <tar file>		Extract given tar file
 
 Targets:
-	makefiles	Run 'make clean' for each Makefile found
+	builds		Run 'make clean' for each Makefile found
 	empty		Delete empty files or directories
 	intermediate	Delete temporary stuff like .o files
 	duplicates	Turn duplicate files into hard links
@@ -244,7 +249,7 @@ EOF
 exit
 fi
 
-TARGETS=( makefiles intermediate redundant duplicates office empty )
+TARGETS=( builds intermediate redundant duplicates office empty )
 
 while :; do
 	case $1 in
