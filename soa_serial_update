@@ -1,0 +1,28 @@
+#!/usr/bin/gawk -f
+
+BEGIN {
+	if (ARGC < 2) {
+		exit 1
+	}
+
+	ZONE = ARGV[1]
+
+	while ("host -t SOA " ZONE | getline);
+	old_serial = $7
+
+	match(old_serial, "(........)(..)", matches)
+	old_date = matches[1]
+	old_incr = matches[2]
+
+	new_date = strftime("%Y%m%d")
+	new_incr = 0
+
+	if (old_date == new_date)
+		new_incr = old_incr + 1
+
+	# Prevent breaking future serials
+	if (new_incr > 99)
+		new_incr = 99
+
+	printf "%s%02d", new_date, new_incr
+}
