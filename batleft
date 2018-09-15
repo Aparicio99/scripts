@@ -1,32 +1,53 @@
 #!/usr/bin/awk -f
 
 function readval(file) {
-	getline line < (path file)
-	return line
+	if (getline line < (path file) > 0)
+		return line
+	else
+		return 0
 }
 
 BEGIN {
-	path = "/sys/class/power_supply/BAT0/"
+	path1 = "/sys/class/power_supply/BAT0/"
+	path2 = "/sys/class/power_supply/BAT1/"
+
+	if (readval(path1"present"))
+		path = path1
+	else
+		path = path2
 
 	status        = readval("status")
 	capacity      = readval("capacity")
-	charge_now    = readval("charge_now") / 1000
-	charge_full   = readval("charge_full") / 1000
-	current_now   = readval("current_now") / 1000
 	voltage_now   = readval("voltage_now") / 1000000
 
-	power_usage   = (current_now / 1000) * voltage_now
+	energy_now    = readval("energy_now") / 1000
+	energy_full   = readval("energy_full") / 1000
+
+	charge_now    = readval("charge_now") / 1000
+	charge_full   = readval("charge_full") / 1000
+
+	power_now     = readval("power_now") / 1000
+	current_now   = readval("current_now") / 1000
+
+	if (!energy_now)
+		energy_now  = charge_now * voltage_now
+
+	if (!energy_full)
+		energy_full = charge_full * voltage_now
+
+	if (!power_now)
+		power_now   = current_now * voltage_now
 
 	printf "Status: %s\n", status
-	printf "Charge: %d% (%d/%d mAh)\n", capacity, charge_now, charge_full
+	printf "Charge: %d% (%d/%d mWh)\n", capacity, energy_now, energy_full
 	printf "Current: %d mA @ %.3f V\n", current_now, voltage_now
-	printf "Power usage: %.2f W\n", power_usage
+	printf "Power usage: %.2f W\n", power_now / 1000
 
 	if (status == "Discharging")
-		time_left    = charge_now / current_now
+		time_left = energy_now / power_now
 
 	else if (status == "Charging")
-		time_left    = (charge_full - charge_now) / current_now
+		time_left = (energy_full - energy_now) / power_now
 
 	hours_left   = int(time_left)
 	minutes_left = int((time_left - hours_left) * 60)
