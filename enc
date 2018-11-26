@@ -1,16 +1,17 @@
 #!/bin/sh
 PROG=$(basename $0)
+OPTS="-aes-256-cbc -base64 -salt -md md5"
 
 [[ -z $1 ]] && echo "Usage: $PROG <file>" && exit
 
 if [[ $PROG == enc ]] ; then
 	echo "#aes-256-cbc base64" > "$1.aes"
-	openssl enc -aes-256-cbc -base64 -salt -in $1 >> "$1.aes"
+	openssl enc $OPTS -in $1 >> "$1.aes"
 elif [[ $# > 1 ]]; then
 	FILE=$(mktemp)
-	openssl enc -d -aes-256-cbc -base64 -in $2 > $FILE
+	openssl enc -d $OPTS -in $2 > $FILE
 	$1 $FILE
 	/bin/rm $FILE
 else
-	openssl enc -d -aes-256-cbc -base64 -in $1
+	openssl enc -d $OPTS -in $1
 fi
