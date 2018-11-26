@@ -13,6 +13,12 @@ fi
 
 shift
 
+source /etc/os-release
+
+function is_gentoo() {
+	[[ $ID == "gentoo" ]]
+}
+
 function is_another_chroot_is_running() {
 	# Yes, this is has a race-condition, but who cares in this case...
 	for pid in $(pidof bash); do
@@ -40,11 +46,11 @@ if ! mount_exists /dev; then
 	mount --make-rslave "${CHROOT}/dev"
 fi
 
-if ! mount_exists /usr/portage; then
+if is_gentoo && ! mount_exists /usr/portage; then
 	mount -o bind /usr/portage "${CHROOT}/usr/portage"
 fi
 
-if ! mount_exists /usr/distfiles; then
+if is_gentoo && ! mount_exists /usr/distfiles; then
 	mount -o bind /usr/distfiles "${CHROOT}/usr/distfiles"
 fi
 
@@ -60,5 +66,5 @@ chroot "${CHROOT}" /bin/bash "$@"
 if [ -z "${KEEP_MOUNTS}" ] && ! is_another_chroot_is_running ; then
 	umount -l "${CHROOT}"/dev{/shm,/pts,}
 	umount -l "${CHROOT}"{/sys,/proc}
-	umount -f "${CHROOT}/usr/"{portage,distfiles}
+	is_gentoo && umount -f "${CHROOT}/usr/"{portage,distfiles}
 fi
