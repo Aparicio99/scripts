@@ -20,24 +20,26 @@ rsync_backup() {
 	local local_host=$(hostname)
 	local backup_location=$RSYNC_BACKUP_DEST
 
+	local host=${backup_location%:*}
+	local dir=${backup_location#*:}
+
 	local dirs="$RSYNC_BACKUP_DIRS"
 
-	local new="$local_host/$(date +%Y.%m.%d.%H.%M.%S)"
+	local new="$local_host/$(date +%Y-%m)/$(date +%Y.%m.%d.%H.%M.%S)"
 
 	echo "Backing up $dirs to ${backup_location}${new}..."
+
+	ssh $host -- mkdir -p ${new}
 
 	rsync --archive --one-file-system --human-readable --progress \
 	      --numeric-ids --delete --delete-excluded \
 	      --hard-links --links --safe-links \
 	      --exclude-from=$RSYNC_EXCLUDE \
 	      --include-from=$RSYNC_INCLUDE \
-	      --link-dest=../last \
-	      ${dirs} ${backup_location}${new}
+	      --link-dest=../../last \
+	      ${dirs} ${backup_location}${new} || exit
 
-	local host=${backup_location%:*}
-	local dir=${backup_location#*:}
-
-	ssh $host ln -sfn $(basename ${new}) ${dir}${local_host}/last
+	ssh $host ln -sfn ${new#*/} ${dir}${local_host}/last
 }
 
 scp_backup() {
