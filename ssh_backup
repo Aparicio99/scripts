@@ -17,7 +17,7 @@ case $1 in
 		;;
 
 	rsync)
-		[ "$prog" != "rsync" -a "$prog" != "ln" ] && exit 3
+		[ "$prog" != "rsync" -a "$prog" != "ln" -a "$prog" != "mkdir" ] && exit 3
 
 		$SSH_ORIGINAL_COMMAND
 		;;
