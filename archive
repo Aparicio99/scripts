@@ -273,7 +273,7 @@ case $CMD in
 
 	extract)  extract $ARGS ;;
 
-	compress) compress "$@" ;;
+	compress) compress "$ARGS" ;;
 
 	*) echo "Unknown action '$CMD'" ;;
 esac
