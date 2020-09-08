@@ -1,0 +1,39 @@
+#!/bin/bash
+
+function mpc_cmd() {
+	case $1 in
+		toggle) mpc toggle ;;
+		stop)   mpc stop   ;;
+		next)   mpc next   ;;
+		prev)   mpc prev   ;;
+		status) mpc status ;;
+	esac
+}
+
+function do_mpd() {
+	mpc_cmd "$1" | awk '/^\[/{match($1, "\\[(.*)\\]", a); print a[1]}'
+}
+
+function do_playerctl() {
+
+	case $1 in
+		toggle) playerctl play-pause ;;
+		stop)   playerctl stop       ;;
+		next)   playerctl next       ;;
+		prev)   playerctl previous   ;;
+	esac
+
+	sleep 0.1
+	if out=$(playerctl status); then
+		echo ${out,,}
+	fi
+}
+
+if playerctl status &>/dev/null; then
+	do_playerctl "$1"
+
+elif pidof mpd &>/dev/null; then
+	do_mpd "$1"
+fi
+
+
