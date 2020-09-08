@@ -16,11 +16,11 @@ shift
 source /etc/os-release
 
 function is_gentoo() {
-	[[ $ID == "gentoo" ]]
+	[[ $ID == "gentoo" ]] && [[ $( source ${CHROOT}/etc/os-release; echo $ID ) == "gentoo" ]]
 }
 
 function is_another_chroot_is_running() {
-	# Yes, this is has a race-condition, but who cares in this case...
+	# Yes, this has a race-condition, but who cares in this case...
 	for pid in $(pidof bash); do
 		path=$(ls -ld "/proc/${pid}/root" | awk '{print $NF}')
 		[ "$path" = "$CHROOT" ] && return 0
