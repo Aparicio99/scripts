@@ -29,7 +29,8 @@ function do_playerctl() {
 	fi
 }
 
-if playerctl status &>/dev/null; then
+out=$(playerctl status 2>&1)
+if (( $? == 0 )) && [[ ! "$out" =~ "No players found" ]]; then
 	do_playerctl "$1"
 
 elif pidof mpd &>/dev/null; then
