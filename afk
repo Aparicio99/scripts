@@ -48,7 +48,7 @@ function away() {
 	log "> stopping music"
 	music stop
 
-	if pidof xscrensaver >/dev/null; then
+	if pidof xscreensaver >/dev/null; then
 		log "> locking screen"
 		xscreensaver-command -lock
 	else
