@@ -24,9 +24,15 @@ function work_hours() {
 	return 0
 }
 
+function no_suspend_programs() {
+	pidof minecraft-launcher
+}
+
 function no_screen_timeout() {
 	local idle_time=$(x_idle)
 	local timeout=300 # 5m
+
+	[[ $(music) == "playing" ]] && timeout=1200 # 20 min
 
 	work_hours && timeout=1800 # 30m
 
@@ -36,7 +42,7 @@ function no_screen_timeout() {
 
 function no_suspend_timeout() {
 	local idle_time=$(x_idle)
-	local timeout=1800 # 30m
+	local timeout=2700 # 45m
 
 	work_hours && timeout=5400 # 1h30m
 
@@ -96,6 +102,10 @@ function daemon() {
 			elif cpu_activity; then
 				log "Recent CPU activity ($(cat /proc/loadavg)), waiting 5m"
 				sleep 5m
+
+			elif no_suspend_programs; then
+				log "VIP program running, waiting 30m"
+				sleep 30m
 			else
 				log "No X activity for suspend timeout"
 				off
