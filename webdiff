@@ -1,0 +1,22 @@
+#!/bin/sh
+
+NAME="$1"
+URL="$2"
+
+TMP1="/tmp/webdiff-$NAME-1"
+TMP2="/tmp/webdiff-$NAME-2"
+
+if ! command -v html2text >/dev/null; then
+	echo "html2text utility not installed"
+	exit 1
+fi
+
+curl --silent "$URL" | html2text > $TMP1
+
+if [ -f "$TMP2" ]; then
+	if ! diff $TMP2 $TMP1; then
+		echo "Diff for $NAME: $URL"
+	fi
+fi
+
+mv "$TMP1" "$TMP2"
