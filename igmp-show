@@ -1,0 +1,19 @@
+#!/usr/bin/awk -f
+
+BEGIN {
+
+	while (getline < "/proc/net/igmp") {
+		if (/: /)
+			print
+		else {
+			hex_ip = $1
+
+			for (i = 0; i < 4; i++) {
+				octet[i] = strtonum("0x" substr(hex_ip, i*2 + 1, 2))
+			}
+
+			print $0, octet[3] "." octet[2] "." octet[1] "." octet[0]
+		}
+	}
+
+}
