@@ -1,0 +1,144 @@
+#!/bin/bash
+
+function print_pretty() {
+	printf "%-12s | %-4s | %-20s | %-30s | %-15s | %s\n" "$@"
+}
+
+function print_csv() {
+	printf "%s;%s;%s;%s;%s;%s\n" "$@"
+}
+
+function hours2human() {
+	read hours
+	local days=$(( hours / 24 ))
+
+	if ((days < 365 )); then
+		printf "%dd" $days
+	else
+		local years=$(( days / 365 ))
+		local days=$(( days % 365 ))
+		printf "%dy %3dd" $years $days
+	fi
+}
+
+function filter_size() {
+	sed 's/ [[:digit:]]\+\(GB\|TB\)//g'
+}
+
+function bytes2human() {
+	read bytes
+	echo "$(( bytes / 1000 / 1000 / 1000 )) GB"
+}
+
+function json_get() {
+	local children=( $@ )
+	local jq_arg=""
+
+	for child in ${children[@]}; do
+		jq_arg+=".$child"
+	done
+
+	echo "$DATA" | jq --raw-output "$jq_arg" | sed 's/^null$/-/'
+}
+
+function process_disk() {
+	local path="$1"
+	DATA=$(smartctl --all --json $path)
+
+	case "$(json_get device type)" in
+		sat)  local type="SATA" ;;
+		nvme) local type="NVMe" ;;
+	esac
+
+	local model_family=
+	local model_name=
+	local serial_number=
+	local hours=
+
+	INFO[$path,"model_family"]="$(json_get model_family)"
+	INFO[$path,"model_name"]="$(json_get model_name | filter_size)"
+	INFO[$path,"serial_number"]="$(json_get serial_number)"
+	INFO[$path,"time"]="$(json_get power_on_time.hours | hours2human)"
+	INFO[$path,"size"]="$(json_get user_capacity.bytes | bytes2human)"
+	INFO[$path,"smart_ok"]="$(json_get smart_status.passed)"
+
+	if [[ "$type" == "SATA" ]]; then
+		rotation=$(json_get rotation_rate)
+		cur_speed=$(json_get interface_speed.current.string)
+		sata_version=$(json_get sata_version.string)
+
+		INFO[$path,"speed"]="$sata_version @ $cur_speed "
+
+		if (( rotation > 0 )); then
+			INFO[$path,"type"]="HDD $rotation RPM"
+		else
+			INFO[$path,"type"]="SSD $sata_version"
+		fi
+
+		for attr in $(echo "$DATA" | jq --raw-output '.ata_smart_attributes.table[].name'); do
+			SATA_ATTRIBUTES[$attr]=1
+
+			value=$(echo $DATA | jq '.ata_smart_attributes.table[] | select(.name | contains("'$attr'")) | .value')
+			raw_value=$(echo $DATA | jq --raw-output '.ata_smart_attributes.table[] | select(.name | contains("'$attr'")) | .raw.string' | sed 's/ (.*)$//')
+			INFO[$path,$attr]="$(printf "%3d / %s" $value $raw_value)"
+		done
+
+	elif [[ "$type" == "NVMe" ]]; then
+		nvme_version=$(json_get nvme_version.string)
+		INFO[$path,"type"]="NVMe $nvme_version"
+	fi
+
+}
+
+LSBLK="lsblk --path --raw -o NAME,TYPE,HOTPLUG"
+
+DISKS=( $($LSBLK | awk '$2 == "disk" && $3 == 0{print $1}') )
+
+declare -A SATA_ATTRIBUTES
+
+declare -A INFO
+
+#print_pretty "Path" "Type" "Model Family" "Model Name" \
+#	     "Serial Number" "On Time"
+#printf -- "----------------------------------------------------------\n"
+
+for disk in "${DISKS[@]}"; do
+	process_disk "$disk"
+done
+
+MAX_SIZE=0
+
+for value in "${INFO[@]}"; do
+	size=${#value}
+	if (( size > MAX_SIZE )); then
+		MAX_SIZE=$size
+	fi
+done
+
+TITLE_FMT=" %-25s |"
+VALUE_FMT=" %-${MAX_SIZE}s |"
+
+printf "$TITLE_FMT" "Property"
+for disk in "${DISKS[@]}"; do
+	printf "$VALUE_FMT" "$disk"
+done
+printf "\n"
+
+for prop in model_family model_name serial_number time size type speed smart_ok; do
+	printf "$TITLE_FMT" "$prop"
+	for disk in "${DISKS[@]}"; do
+
+		printf "$VALUE_FMT" "${INFO[$disk,$prop]}"
+	done
+	printf "\n"
+done
+
+for attr in ${!SATA_ATTRIBUTES[@]}; do
+	printf "$TITLE_FMT" "$attr"
+	for disk in "${DISKS[@]}"; do
+
+		printf "$VALUE_FMT" "${INFO[$disk,$attr]}"
+	done
+	printf "\n"
+
+done
