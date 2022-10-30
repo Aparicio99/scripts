@@ -1,0 +1,8 @@
+#!/bin/bash
+remote="$1"
+dest="$2"
+
+user=aparicio
+cmd="rclone mount --vfs-cache-mode full $remote $dest"
+
+su - $user -c "$cmd" &
